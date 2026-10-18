@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "handoff-ai",
+  "name": "handoff-app",
   "main": "server/worker.ts",
   "compatibility_date": "2026-01-01",
   "workers_dev": true,

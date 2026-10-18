@@ -1,6 +1,6 @@
 import { resources, type Handoff, type Resource, type AiManual } from "./data";
 export type { AiManual } from "./data";
-export const apiUrl = (import.meta.env.VITE_AI_API_URL || "").replace(
+export const apiUrl = (import.meta.env.VITE_AI_API_URL || "https://handoff-app.ansfwatson4.workers.dev").replace(
   /\/$/,
   "",
 );

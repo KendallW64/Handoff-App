@@ -100,3 +100,7 @@ Worker packaging is verified with `npx wrangler deploy --dry-run`. Local D1 migr
 - `.github/workflows/deploy-pages.yml`: public backend URL injection and mocked AI regression checks.
 
 This addition changes the prototype's optional provider, not the production security roadmap. Microsoft Entra ID and customer-level ACLs remain unimplemented; real company documents are not supported.
+
+## Configured public endpoint
+
+The owner supplied `https://handoff-app.ansfwatson4.workers.dev`. It is now the frontend default (overridable with `AI_API_URL` in the Pages workflow). The Worker deployment name is aligned to `handoff-app` so future deployments target the same Worker. This URL is public configuration, not a credential. Direct verification from this cloud was blocked by the environment proxy before reaching Cloudflare. The Gemini model placeholder and disabled setting remain until the owner configures a supported model and stores the key privately. No successful real model request has been observed.
