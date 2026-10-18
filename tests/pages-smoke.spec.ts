@@ -1,3 +1,4 @@
+import { writeFile } from "node:fs/promises";
 import { test, expect } from "@playwright/test";
 test("Pages loads compiled assets, mounts React, and enters the demo", async ({
   page,
@@ -31,6 +32,25 @@ test("Pages loads compiled assets, mounts React, and enters the demo", async ({
   await expect(
     page.getByRole("button", { name: "New handoff", exact: true }),
   ).not.toBeVisible();
+  await page.screenshot({
+    path: test.info().outputPath("public-landing.png"),
+    fullPage: true,
+  });
+  await writeFile(
+    test.info().outputPath("deployment-evidence.json"),
+    JSON.stringify(
+      {
+        requestedURL: baseURL,
+        loadedURL: page.url(),
+        httpStatus: response?.status(),
+        moduleURLs: scripts,
+      },
+      null,
+      2,
+    ),
+  );
+  console.log("Verified public landing URL:", page.url());
+
   await page.getByRole("button", { name: "Explore the demo" }).click();
   await page.getByRole("button", { name: "Enter demo workspace" }).click();
   await expect(

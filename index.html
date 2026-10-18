@@ -1,1 +1,51 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="theme-color" content="#102e3c"/><meta name="description" content="Handoff — Knowledge stays. Teams move forward. Explore a fictional employee knowledge transfer workflow."/><title>Handoff — Knowledge stays.</title></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#102e3c" />
+    <meta
+      name="description"
+      content="Handoff — Knowledge stays. Teams move forward. Explore a fictional employee knowledge transfer workflow."
+    />
+    <title>Handoff — Knowledge stays.</title>
+    <style>
+      #startup-status {
+        max-width: 560px;
+        margin: 12vh auto;
+        padding: 28px;
+        font:
+          16px/1.7 system-ui,
+          sans-serif;
+        color: #173b46;
+      }
+      #startup-status[hidden] {
+        display: none;
+      }
+      #startup-reload {
+        padding: 12px 18px;
+        border: 0;
+        border-radius: 7px;
+        background: #173b46;
+        color: white;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <section id="startup-status" role="status" aria-live="polite">
+      <h1>Handoff</h1>
+      <p id="startup-message">Loading your next chapter…</p>
+      <noscript
+        ><p>
+          Handoff requires JavaScript. Enable it in your browser, then reload
+          this page.
+        </p></noscript
+      >
+      <button id="startup-reload" type="button">Reload Handoff</button>
+    </section>
+    <div id="root"></div>
+    <script src="./startup.js"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

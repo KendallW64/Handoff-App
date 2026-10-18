@@ -63,7 +63,7 @@ jobs:
         env:
           PAGES_URL: ${{ needs.deploy.outputs.page_url }}
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
-          name: live-site-test-failures
+          name: live-site-evidence
           path: test-results

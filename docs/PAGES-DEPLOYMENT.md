@@ -40,3 +40,9 @@ For local reproduction use `npm run test:pages`. Unlike `npm test`, this builds 
 ## Current status
 
 Reproduced the original base-path failure locally. The repaired static deployment and important workflows are tested locally; see `TESTING.md` for counts. Live verification remains unconfirmed until a successful public-site test and deployment status can be observed. Environment network additions for the public site and GitHub API were saved for review; saving a draft does not apply networking. No claim of a repaired live site is made without that evidence.
+
+## If the live check is green but a browser is blank
+
+The owner reported this in Chrome at the expected URL. Do not assume a cache problem or a fixed deployment from that discrepancy alone. Compare the same URL in Chrome Incognito, then inspect the first red Console error and failed Network request in the affected browser. Avoid clearing all site storage as a first step: it deletes local demo handoffs.
+
+The latest workflow uploads a `live-site-evidence` artifact after the live job, even on success. Open `public-landing.png` to compare the actual tested page and `deployment-evidence.json` for its precise requested/final URLs and module paths. Artifact existence/content still depends on how far that run reached. A plain HTML startup panel now shows a useful message if the app file fails or startup stalls; a React error boundary covers rendering failures. These diagnostics do not establish the original cause. Record the affected browser/version, device, private-window behavior, and Console error before choosing the next fix.

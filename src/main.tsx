@@ -38,6 +38,7 @@ import "@fontsource/manrope/500.css";
 import "@fontsource/manrope/600.css";
 import "@fontsource/manrope/700.css";
 import "./style.css";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { requestAi, isAiManual, type AiManual } from "./ai";
 import { AiControls } from "./AiControls";
 type Page = "home" | "signin" | "dashboard" | "handoff" | "ask";
@@ -75,6 +76,9 @@ function load(): Handoff[] {
   return initialHandoffs;
 }
 function App() {
+  useEffect(() => {
+    window.dispatchEvent(new Event("handoff:ready"));
+  }, []);
   const [page, setPage] = useState<Page>("home");
   const [items, setItems] = useState<Handoff[]>(load);
   const [active, setActive] = useState("h1");
@@ -1316,6 +1320,8 @@ function App() {
 }
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>,
 );
