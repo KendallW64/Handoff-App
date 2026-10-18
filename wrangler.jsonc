@@ -13,7 +13,7 @@
     {
       "binding": "DB",
       "database_name": "handoff-ai-usage",
-      "database_id": "REPLACE_WITH_DATABASE_ID",
+      "database_id": "8b99de08-bc00-4e29-883b-e6dfa385b2b4",
       "migrations_dir": "server/migrations",
     },
   ],
