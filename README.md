@@ -58,18 +58,28 @@ The cloud machine has Chromium at `/usr/bin/chromium`:
 npm test
 ```
 
-On another machine, install Playwright Chromium and give the configuration its executable path:
+On another machine, install Playwright Chromium (the configuration uses an installed system Chromium when available):
 
 ```sh
 npx playwright install chromium
-CHROMIUM_PATH="/absolute/path/to/chromium" npm test
+npm test
 ```
 
-Alternatively replace `executablePath` in `playwright.config.ts` with your local browser path. Tests start Vite automatically. See `TESTING.md` for actual results and limitations.
+Set `CHROMIUM_PATH` only if a different executable is needed. Tests start Vite automatically. See `TESTING.md` for actual results and limitations.
+
+For production-file tests at the Pages project path, run `npm run test:pages`. For the actual public site, run `npm run test:live` (or set `PAGES_URL` to the deployed URL). The live check does not start a local server.
 
 ## Publish to a public URL
 
-No hosting account or deployment credentials are included. The current work prepares a deployable site; it does not publish it.
+### GitHub Pages
+
+The repository now includes `.github/workflows/deploy-pages.yml`. Set **Settings → Pages → Source → GitHub Actions**, then run the workflow on `main`. It builds and tests the app, deploys only `dist`, and verifies the actual deployed URL. All three jobs must pass; a successful build alone does not prove the site loads.
+
+See [Pages diagnosis and confirmation steps](docs/PAGES-DEPLOYMENT.md). The base-path failure was reproduced locally and corrected; the existing live Pages settings and site remain unverified from this network.
+
+### Other static hosts
+
+No hosting account or deployment credentials are included.
 
 A beginner-friendly option is a static site on Netlify or Vercel:
 
@@ -107,3 +117,9 @@ These authoritative reference links are supplied for verification. Direct retrie
 ## Before production
 
 Add real tenant isolation, authenticated sessions, role-based authorization, server-side validation and persistence, retention/deletion policies, audit logs, backup and recovery, secure document ingestion, and access-aware search. Real AI needs permission-filtered retrieval, prompt-injection defenses, evidence evaluation, and monitored model/API usage. Approval should record the authenticated reviewer, timestamp, and version. Test accessibility with assistive technology and run security and load reviews. This prototype is not a secure system for employee records.
+
+## Microsoft AI roadmap and requirements review
+
+[Microsoft integration proposal](docs/MICROSOFT-AI-PLAN.md) compares Foundry and Copilot Studio, required accounts, costs, Entra sign-in, server-side identities, tenant/document isolation, and acceptance gates. No real Microsoft integration is configured or claimed.
+
+[Requirements review](docs/REQUIREMENTS-REVIEW.md) records implemented, simulated, and outstanding features against the original brief.

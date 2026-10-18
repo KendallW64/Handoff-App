@@ -45,6 +45,7 @@ function load(): Handoff[] {
     const v = JSON.parse(localStorage.getItem(storageKey) || "null");
     if (
       Array.isArray(v) &&
+      v.length > 0 &&
       v.every(
         (h) =>
           h &&
@@ -179,8 +180,12 @@ function App() {
               {logo}
             </button>
             <nav>
-              <a href="#how" onClick={() => nav("home")}>How it works</a>
-              <a href="#built" onClick={() => nav("home")}>Why Handoff</a>
+              <a href="#how" onClick={() => nav("home")}>
+                How it works
+              </a>
+              <a href="#built" onClick={() => nav("home")}>
+                Why Handoff
+              </a>
               <button className="btn small" onClick={() => nav("signin")}>
                 Sign in <ArrowUpRight size={15} />
               </button>
