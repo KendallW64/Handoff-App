@@ -32,3 +32,7 @@ The sample workflow is usable end to end: create → select/read → generate �
 ## College evaluator view
 
 Five-screen structure, public landing, explicit demo entry, screenshots, six-section manual, source-backed answers, and local persistence are demonstrated. The remaining assignment gap is observed public URL readiness. AI simulation remains within the original brief but does not satisfy the new real-Microsoft requirement; that requires the staged implementation and configuration in the proposal.
+
+## Subsequent optional Gemini adapter
+
+A Cloudflare Worker/D1 adapter and frontend opt-in controls now support real Gemini manuals and source-referenced answers once deployed and configured. It is disabled by default, accepts only the built-in fictional source library, and limits shared usage to 10 requests per UTC day. Server and browser integration tests pass with mocked model responses. No live provider request has succeeded yet, so the deployed demo must not be described as real AI until that test occurs. This addition does not implement Entra authentication, company isolation, uploads, enterprise ACLs, or shared company storage. See GEMINI-SETUP.md for the exact account-owner deployment steps and limitations.

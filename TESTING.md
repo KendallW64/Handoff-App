@@ -48,3 +48,15 @@ No public hosting deployment has been performed. No credentials were requested o
 - Microsoft AI remains simulated. No Azure model, Entra session, tenant authorization backend, real-document pipeline, or genuine model call was tested. See the staged plan and original-requirements review in `docs/`.
 - Final development rerun: **4 tests passed**, none skipped. Production static run: **5 passed**, none skipped.
 - Actual live test command `npm run test:live`: **1 failed** (including its configured retries) at navigation with `net::ERR_TUNNEL_CONNECTION_FAILED`, consistent with the proxy's CONNECT 403. It did not reach the application, so no live readiness conclusion is possible.
+
+## Optional Gemini backend addition
+
+- `npm run check:backend`: passed. Frontend TypeScript and production build also passed as part of the static regression run.
+- `npm run test:backend`: **7 passed**, none skipped, using a fake Gemini provider. Tests cover server-side header-based credentials, selected documents only, disabled/missing configuration, origin checks/preflight, bounded/validated input, failed requests consuming the daily limit, citation validation and abstention, all six manual sections, and sanitized provider/database failures.
+- `npm run test:gemini`: **3 passed**, none skipped, using mocked browser-to-backend responses. Tests cover labeled/cited Gemini outputs, persisted manual content/provenance, approval and invalidation, visible provider failure without simulated fallback, and late responses not appearing in a different handoff.
+- `npm run test:pages`: **5 passed**, none skipped, against the compiled static site at the Pages subpath. Existing intentional sign-in, handoff lifecycle, persistence, responsive layout, keyboard, evidence scope, and corrupt-storage checks still pass.
+- `wrangler deploy --dry-run`: successfully bundled the Worker without deploying or requiring a model key.
+- Local D1 migration applied successfully via Wrangler. Eleven sequential quota reservations against local D1 left the persistent count at **10**; the eleventh reservation did not increment it.
+- During development, the first Gemini UI test had an overly exact selector for the sidebar Handoffs button (whose accessible name includes its count). Corrected the selector and reran all three Gemini UI tests successfully.
+- No real Gemini request was performed, no Cloudflare resources were deployed, no credentials were supplied, and free-tier model availability/pricing was not confirmed for the user's account. Mocked integration checks are not evidence of a working live provider. Live deployment and a key-configured successful model request remain required.
+- Started the actual Worker locally with Wrangler/workerd: `/api/health` returned `configured: false`, and `/api/generate` returned HTTP 503 while disabled. This confirms the deployed-runtime handler fails closed without credentials; it is not a live Gemini test.

@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "handoff-ai",
+  "main": "server/worker.ts",
+  "compatibility_date": "2026-01-01",
+  "workers_dev": true,
+  "vars": {
+    "ENABLE_GEMINI": "false",
+    "ALLOWED_ORIGIN": "https://kendallw64.github.io",
+    "GEMINI_MODEL": "REPLACE_WITH_FREE_TIER_MODEL_ID",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "handoff-ai-usage",
+      "database_id": "REPLACE_WITH_DATABASE_ID",
+      "migrations_dir": "server/migrations",
+    },
+  ],
+}

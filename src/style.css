@@ -1651,3 +1651,25 @@ dd {
     display: inline-flex;
   }
 }
+.ai-controls {
+  border: 1px solid #dce8e2;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 18px 0;
+  background: #f9fcfa;
+}
+.ai-controls label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ai-controls input {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: #377b6d;
+}
+.ai-controls p {
+  font-size: 11px;
+  margin: 10px 0 0;
+}

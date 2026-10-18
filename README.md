@@ -30,11 +30,15 @@ npm run preview  # Locally serve that production bundle
 
 Creation and source-review dialogs are panels within these screens. Leave workspace returns to the public website. Refresh also returns to the public website while preserving handoff records.
 
+## Optional Gemini connection
+
+A server-side Gemini adapter and frontend controls are now implemented. Follow [Gemini setup](docs/GEMINI-SETUP.md) to deploy a Cloudflare Worker, privately configure the key, and connect the public backend URL. It starts disabled, uses fictional sources only, and caps shared model requests at 10 per UTC day. The connection is **not deployed or live-tested** yet. Sample mode remains the default; successful AI outputs are explicitly labeled with their model.
+
 ## Implemented versus simulated
 
 **Implemented:** responsive navigation, labeled forms with required fields, whitespace validation, fictional handoff creation, local persistence, dashboard filtering, source selection and reading, manual assembly, approval, source-change invalidation, question matching with source references, and print styling. Dialogs support Escape, trapped keyboard focus, and focus restoration.
 
-**Simulated:** authentication (no identity verification or security boundary), enterprise integrations (a built-in sample library only), and AI (deterministic local templates and keyword retrieval, not an LLM). Questions return matching source passages rather than independent generated claims. The same fictional library is available to every handoff, and only selected documents are used. There is no upload service or connection to company systems.
+**Simulated by default:** authentication (no identity verification or security boundary), enterprise integrations (a built-in sample library only), and AI (deterministic local templates and keyword retrieval, not an LLM). Questions return matching source passages rather than independent generated claims. The same fictional library is available to every handoff, and only selected documents are used. There is no upload service or connection to company systems. Optional Gemini mode can use real model responses after backend configuration; it never silently substitutes sample responses for provider failures.
 
 Manual sections identify whether their source is user-entered demo handoff details or selected sample documents. The Why and How sections preserve source passages to keep the demonstration verifiable; they are starting points for human review, not expert recommendations.
 
@@ -86,7 +90,7 @@ A beginner-friendly option is a static site on Netlify or Vercel:
 1. Commit this project and push it to your GitHub repository.
 2. Sign in to your hosting provider and import `KendallW64/Handoff-App` as a new project.
 3. Choose Vite (if prompted). Set install command to `npm ci`, build command to `npm run build`, and output directory to `dist`.
-4. Select a supported Node version (22.12+ or 24). No environment variables, API keys, database, or backend are required.
+4. Select a supported Node version (22.12+ or 24). No environment variables, API keys, database, or backend are required for sample mode. Optional Gemini uses the separate Worker backend described above.
 5. Deploy and copy the public URL displayed by the host. Test from a private browser window: it should start at the public landing page.
 6. Repeat the full walkthrough on the public URL. Hosted local data is separate from local development data. Anyone opening the URL gets their own browser's sample records.
 

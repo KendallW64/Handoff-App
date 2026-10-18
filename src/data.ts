@@ -4,6 +4,10 @@ export type Resource = {
   category: string;
   text: string;
 };
+export type AiManual = {
+  model: string;
+  sections: { title: string; body: string; sources: Resource[] }[];
+};
 export type Handoff = {
   id: string;
   name: string;
@@ -16,6 +20,7 @@ export type Handoff = {
   selected: string[];
   generated: boolean;
   approved: boolean;
+  aiManual?: AiManual;
 };
 export const resources: Resource[] = [
   {

@@ -22,9 +22,13 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm run check:backend && npm run test:backend
       - run: npx playwright install --with-deps chromium
+      - run: npm run test:gemini
       # A strict static server catches failures hidden by the Vite dev server.
       - run: npm run test:pages
+        env:
+          VITE_AI_API_URL: ${{ vars.AI_API_URL }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

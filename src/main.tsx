@@ -38,6 +38,8 @@ import "@fontsource/manrope/500.css";
 import "@fontsource/manrope/600.css";
 import "@fontsource/manrope/700.css";
 import "./style.css";
+import { requestAi, isAiManual, type AiManual } from "./ai";
+import { AiControls } from "./AiControls";
 type Page = "home" | "signin" | "dashboard" | "handoff" | "ask";
 const storageKey = "handoff-demo-v1";
 function load(): Handoff[] {
@@ -65,7 +67,10 @@ function load(): Handoff[] {
           typeof h.approved === "boolean",
       )
     )
-      return v;
+      return v.map(({ aiManual, ...record }) => ({
+        ...record,
+        ...(isAiManual(aiManual) ? { aiManual } : {}),
+      }));
   } catch {}
   return initialHandoffs;
 }
@@ -80,8 +85,19 @@ function App() {
   const [filter, setFilter] = useState("All handoffs");
   const [notice, setNotice] = useState("");
   const [question, setQuestion] = useState("");
+  const [useGemini, setUseGemini] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [aiError, setAiError] = useState("");
+  const requestVersion = React.useRef(0);
+  const selectedFingerprint =
+    items.find((i) => i.id === active)?.selected.join(",") || "";
+  useEffect(() => {
+    requestVersion.current++;
+    setBusy(false);
+    setAiError("");
+  }, [active, page, useGemini, selectedFingerprint]);
   const [chat, setChat] = useState<
-    { q: string; text: string; sources: Resource[] }[]
+    { q: string; text: string; sources: Resource[]; model?: string }[]
   >([]);
   // Keep keyboard focus inside open dialogs and restore it when they close.
   useEffect(() => {
@@ -147,11 +163,85 @@ function App() {
     setPage(p);
     setNotice("");
   }
-  function ask(q: string) {
-    if (!q.trim()) return;
-    setChat((c) => [...c, { q: q.trim(), ...answer(q, h) }]);
-    setQuestion("");
+  async function ask(q: string) {
+    if (!q.trim() || busy) return;
+    if (!useGemini) {
+      setChat((c) => [...c, { q: q.trim(), ...answer(q, h) }]);
+      setQuestion("");
+      return;
+    }
+    const version = ++requestVersion.current;
+    setBusy(true);
+    setAiError("");
+    try {
+      const result = (await requestAi("answer", h, q)) as {
+        text: string;
+        sources: Resource[];
+        model: string;
+      };
+      if (version === requestVersion.current) {
+        setChat((c) => [...c, { q: q.trim(), ...result }]);
+        setQuestion("");
+      }
+    } catch (error) {
+      if (version === requestVersion.current)
+        setAiError(
+          error instanceof Error ? error.message : "AI request failed.",
+        );
+    } finally {
+      if (version === requestVersion.current) setBusy(false);
+    }
   }
+  async function generateManual() {
+    if (busy) return;
+    if (!useGemini) {
+      update({ generated: true, approved: false, aiManual: undefined });
+      setTab("Training manual");
+      return;
+    }
+    const version = ++requestVersion.current;
+    setBusy(true);
+    setAiError("");
+    try {
+      const aiManual = (await requestAi("manual", h)) as AiManual;
+      if (version === requestVersion.current) {
+        save(
+          items.map((i) =>
+            i.id === h.id
+              ? { ...i, generated: true, approved: false, aiManual }
+              : i,
+          ),
+        );
+        setTab("Training manual");
+      }
+    } catch (error) {
+      if (version === requestVersion.current)
+        setAiError(
+          error instanceof Error ? error.message : "AI request failed.",
+        );
+    } finally {
+      if (version === requestVersion.current) setBusy(false);
+    }
+  }
+  const aiControls = (
+    <>
+      <AiControls
+        enabled={useGemini}
+        busy={busy}
+        onChange={(value) => {
+          setUseGemini(value);
+          setChat([]);
+          setAiError("");
+        }}
+      />
+      {aiError && (
+        <p role="alert" className="notice">
+          {aiError}
+        </p>
+      )}
+      {busy && <p role="status">Waiting for Gemini…</p>}
+    </>
+  );
   const logo = (
     <span className="logo">
       <span className="logo-mark">
@@ -825,6 +915,7 @@ function App() {
                         fictional resources are built into the prototype; no
                         enterprise accounts are connected.
                       </div>
+                      {aiControls}
                       <div className="resource-list">
                         {resources.map((r) => (
                           <div className="resource-row" key={r.id}>
@@ -839,6 +930,7 @@ function App() {
                                     : h.selected.filter((id) => id !== r.id),
                                   generated: false,
                                   approved: false,
+                                  aiManual: undefined,
                                 })
                               }
                             />
@@ -864,13 +956,13 @@ function App() {
                       </p>
                       <button
                         className="btn"
-                        disabled={!h.selected.length}
-                        onClick={() => {
-                          update({ generated: true, approved: false });
-                          setTab("Training manual");
-                        }}
+                        disabled={!h.selected.length || busy}
+                        onClick={generateManual}
                       >
-                        <Sparkles size={17} /> Generate sample manual
+                        <Sparkles size={17} />{" "}
+                        {useGemini
+                          ? "Generate with Gemini"
+                          : "Generate sample manual"}
                       </button>
                     </section>
                   ) : (
@@ -908,12 +1000,12 @@ function App() {
                             </button>
                           </div>
                           <div className="demo-note">
-                            <Sparkles size={18} /> Simulated AI: this draft
-                            assembles your handoff details and selected sample
-                            sources using local templates. Review all content
-                            before approving.
+                            <Sparkles size={18} />{" "}
+                            {h.aiManual
+                              ? `Generated by Gemini (${h.aiManual.model}) from selected sample sources. AI may be wrong; verify every section and citation before approval.`
+                              : "Simulated AI: this draft assembles your handoff details and selected sample sources using local templates. Review all content before approving."}
                           </div>
-                          {manual(h).map((s) => (
+                          {(h.aiManual?.sections || manual(h)).map((s) => (
                             <article className="manual-section" key={s.title}>
                               <h3>{s.title}</h3>
                               <p>{s.body}</p>
@@ -981,10 +1073,12 @@ function App() {
                       ))}
                     </select>
                     <div className="demo-note">
-                      <Sparkles size={18} /> Simulated AI · Answers retrieve
-                      matching selected sample documents, with sources. No
-                      external AI service is used.
+                      <Sparkles size={18} />{" "}
+                      {useGemini
+                        ? "Gemini mode · Answers use only the selected fictional sample documents and handoff details. This demo is not enterprise authentication or secure company storage."
+                        : "Simulated AI · Answers retrieve matching selected sample documents, with sources. No external AI service is used."}
                     </div>
+                    {aiControls}
                     {!chat.length && (
                       <div className="ask-welcome">
                         <span className="icon-box">
@@ -998,7 +1092,13 @@ function App() {
                             "When are client updates?",
                             "Why was phased migration chosen?",
                           ].map((q) => (
-                            <button key={q} onClick={() => ask(q)}>
+                            <button
+                              key={q}
+                              disabled={
+                                busy || (useGemini && !h.selected.length)
+                              }
+                              onClick={() => ask(q)}
+                            >
                               {q}
                               <ArrowUpRight size={14} />
                             </button>
@@ -1012,7 +1112,10 @@ function App() {
                           <p className="question">{c.q}</p>
                           <div className="answer">
                             <span className="mini-logo">
-                              <Sparkles size={16} /> Handoff · Sample answer
+                              <Sparkles size={16} />{" "}
+                              {c.model
+                                ? `Gemini · ${c.model}`
+                                : "Handoff · Sample answer"}
                             </span>
                             <p>{c.text}</p>
                             {sources(c.sources)}
@@ -1036,7 +1139,11 @@ function App() {
                       />
                       <button
                         className="btn"
-                        disabled={!question.trim()}
+                        disabled={
+                          !question.trim() ||
+                          busy ||
+                          (useGemini && !h.selected.length)
+                        }
                         aria-label="Send question"
                       >
                         <ArrowRight size={20} />
