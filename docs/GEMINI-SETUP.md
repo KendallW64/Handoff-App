@@ -35,7 +35,7 @@ You, as the account owner, run these commands on your own computer. Never send t
    - Replace `REPLACE_WITH_DATABASE_ID` with that database ID.
    - Replace `REPLACE_WITH_FREE_TIER_MODEL_ID` with the exact Gemini model ID currently available on your free tier in AI Studio. Choose a small text model supporting structured JSON output. Do not guess a display name or use a paid/preview model without checking its terms.
    - Keep `ALLOWED_ORIGIN` as `https://kendallw64.github.io` for the Pages site. An origin contains no `/Handoff-App/` path. For a custom domain, use its exact HTTPS origin instead.
-   - Keep `ENABLE_GEMINI` as `"false"` for this initial deployment.
+   - Set `ENABLE_GEMINI` to `"false"` for a new installation’s initial deployment.
 
 3. Initialize the remote database and deploy the disabled backend:
 
@@ -103,4 +103,8 @@ This addition changes the prototype's optional provider, not the production secu
 
 ## Configured public endpoint
 
-The owner supplied `https://handoff-app.ansfwatson4.workers.dev`. It is now the frontend default (overridable with `AI_API_URL` in the Pages workflow). The Worker deployment name is aligned to `handoff-app` so future deployments target the same Worker. This URL is public configuration, not a credential. Direct verification from this cloud was blocked by the environment proxy before reaching Cloudflare. The Gemini model placeholder and disabled setting remain until the owner configures a supported model and stores the key privately. No successful real model request has been observed.
+The owner supplied `https://handoff-app.ansfwatson4.workers.dev`. It is now the frontend default (overridable with `AI_API_URL` in the Pages workflow). The Worker deployment name is aligned to `handoff-app` so future deployments target the same Worker. This URL is public configuration, not a credential. Direct verification from this cloud was blocked by the environment proxy before reaching Cloudflare. At that stage, the model placeholder and disabled setting remained pending owner configuration; see the owner configuration update below for the subsequent test settings. No successful real model request has been observed.
+
+### Owner configuration update
+
+The owner reports the Cloudflare key secret is saved and supplied the model ID `gemini-3.8-flash`. The repository now requests that exact ID with `ENABLE_GEMINI=true` so the next successful Worker deployment can be tested. The frontend still defaults to sample mode. The ID, account eligibility, deployed configuration, and provider response have not been independently verified: direct requests to the Worker and Google model documentation remain blocked by the cloud proxy. A successful actual model request is still required. If the model is unavailable, correct the API model ID from AI Studio; do not enable paid billing to troubleshoot it. No credential was added to the repository.

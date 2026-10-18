@@ -5,9 +5,9 @@
   "compatibility_date": "2026-01-01",
   "workers_dev": true,
   "vars": {
-    "ENABLE_GEMINI": "false",
+    "ENABLE_GEMINI": "true",
     "ALLOWED_ORIGIN": "https://kendallw64.github.io",
-    "GEMINI_MODEL": "REPLACE_WITH_FREE_TIER_MODEL_ID",
+    "GEMINI_MODEL": "gemini-3.8-flash",
   },
   "d1_databases": [
     {
