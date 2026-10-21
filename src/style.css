@@ -1787,3 +1787,8 @@ dd {
 @media(max-width:640px){.organization-row{grid-template-columns:1fr}.organization-panel{padding:14px}}
 
 .danger {color:#a12626;margin-left:14px;}
+
+.handoff-open-controls {display:flex;align-items:center;gap:20px;}
+.handoff-open-controls .person-button {flex:1;text-align:left;}
+.handoff-open-controls .person-button:hover b {text-decoration:underline;text-underline-offset:4px;}
+.handoff-open-controls .icon-button {flex-shrink:0;min-width:44px;min-height:44px;}

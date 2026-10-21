@@ -954,22 +954,31 @@ function App() {
                             .map((i) => (
                               <tr key={i.id}>
                                 <td>
-                                  <button
-                                    className="person-button"
-                                    onClick={() => open(i.id)}
-                                  >
-                                    <span className="avatar blue">
-                                      {i.name
-                                        .split(" ")
-                                        .map((n) => n[0])
-                                        .slice(0, 2)
-                                        .join("")}
-                                    </span>
-                                    <span>
-                                      <b>{i.name}</b>
-                                      <small>{i.role}</small>
-                                    </span>
-                                  </button>
+                                  <div className="handoff-open-controls">
+                                    <button
+                                      className="person-button"
+                                      onClick={() => open(i.id)}
+                                    >
+                                      <span className="avatar blue">
+                                        {i.name
+                                          .split(" ")
+                                          .map((n) => n[0])
+                                          .slice(0, 2)
+                                          .join("")}
+                                      </span>
+                                      <span>
+                                        <b>{i.name}</b>
+                                        <small>{i.role}</small>
+                                      </span>
+                                    </button>
+                                    <button
+                                      className="icon-button"
+                                      aria-label={"Open " + i.name + " handoff"}
+                                      onClick={() => open(i.id)}
+                                    >
+                                      <ArrowUpRight size={18} />
+                                    </button>
+                                  </div>
                                 </td>
                                 <td>{i.recipient}</td>
                                 <td>{i.due}</td>
@@ -989,13 +998,6 @@ function App() {
                                   </span>
                                 </td>
                                 <td>
-                                  <button
-                                    className="icon-button"
-                                    aria-label={"Open " + i.name + " handoff"}
-                                    onClick={() => open(i.id)}
-                                  >
-                                    <ArrowUpRight size={18} />
-                                  </button>
                                   <button className="text-link danger" disabled={deleting||importing} aria-label={"Delete " + i.name + " handoff"} onClick={()=>removeHandoff(i)}>Delete</button>
                                 </td>
                               </tr>
