@@ -1785,3 +1785,5 @@ dd {
 .organization-row label {display:flex;flex-direction:column;gap:6px;min-width:0;}
 .organization-row input {width:100%;box-sizing:border-box;padding:10px;border:1px solid #b8c8cd;border-radius:6px;}
 @media(max-width:640px){.organization-row{grid-template-columns:1fr}.organization-panel{padding:14px}}
+
+.danger {color:#a12626;margin-left:14px;}

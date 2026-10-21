@@ -63,6 +63,18 @@ export const putDocument = (record: UploadRecord) =>
   write((store) => store.put(record));
 export const deleteDocument = (id: string) =>
   write((store) => store.delete(id));
+export async function deleteHandoffDocuments(handoffId: string) {
+  const db = await database();
+  try {
+    await new Promise<void>((resolve,reject)=>{
+      const tx=db.transaction("documents","readwrite");
+      const cursor=tx.objectStore("documents").index("handoffId").openCursor(IDBKeyRange.only(handoffId));
+      cursor.onsuccess=()=>{const record=cursor.result;if(record){record.delete();record.continue();}};
+      tx.oncomplete=()=>resolve();
+      tx.onerror=tx.onabort=()=>reject(new Error("Could not delete this handoff's files. Nothing was removed from the handoff list."));
+    });
+  } finally {db.close();}
+}
 export function extractFile(file: File): Promise<Resource> {
   return new Promise((resolve, reject) => {
     const worker = new Worker(new URL("./extract.worker.ts", import.meta.url), {

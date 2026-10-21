@@ -44,6 +44,7 @@ import { requestAi, isAiManual, type AiManual } from "./ai";
 import { UploadPanel } from "./UploadPanel";
 import {
   listDocuments,
+  deleteHandoffDocuments,
   downloadOriginal,
   type UploadRecord,
 } from "./documents";
@@ -55,7 +56,6 @@ function load(key = storageKey, fallback = initialHandoffs): Handoff[] {
     const v = JSON.parse(localStorage.getItem(key) || "null");
     if (
       Array.isArray(v) &&
-      v.length > 0 &&
       v.every(
         (h) =>
           h &&
@@ -123,6 +123,8 @@ function App() {
   const [uploads, setUploads] = useState<UploadRecord[]>([]);
   const [filesLoading, setFilesLoading] = useState(true);
   const [filesError, setFilesError] = useState("");
+  const [importing,setImporting] = useState(false);
+  const [deleting,setDeleting] = useState(false);
   const [organization,setOrganization] = useState<SavedOrganization>();
   const [fileConsent, setFileConsent] = useState(false);
   useEffect(() => {
@@ -205,7 +207,7 @@ function App() {
       previous?.focus();
     };
   }, [create, source]);
-  const h = items.find((i) => i.id === active) || items[0];
+  const h = items.find((i) => i.id === active) || items[0] || {...initialHandoffs[0],id:"",selected:[]};
   function save(next: Handoff[], kind = workspaceKind) {
     if (workspaceRef.current === kind) {
       itemsRef.current = next;
@@ -264,6 +266,26 @@ function App() {
       ),
       workspaceKind,
     );
+  }
+  async function removeHandoff(target: Handoff) {
+    if (deleting || importing) return;
+    if (!window.confirm(`Delete the handoff for ${target.name}? This removes its saved summary, manual and uploaded files from this browser. Downloaded copies are unchanged. This cannot be undone.`)) return;
+    const kind=workspaceKind;
+    setDeleting(true);
+    try {
+      const key=kind === "demo" ? storageKey : "handoff-files-v1";
+      // Check storage before deleting file bytes; removal only decreases saved metadata size.
+      localStorage.setItem(key,localStorage.getItem(key) || JSON.stringify(itemsRef.current));
+      await deleteHandoffDocuments(target.id);
+      const current=workspaceRef.current === kind ? itemsRef.current : load(key,[]);
+      const remaining=current.filter(item=>item.id !== target.id);
+      save(remaining,kind);
+      if(workspaceRef.current === kind && activeHandoffRef.current === target.id){
+        requestVersion.current++;setBusy(false);setChat([]);setUploads([]);setOrganization(undefined);
+        setActive(remaining[0]?.id || "");setSource(null);nav("dashboard");
+      }
+    } catch(error){setNotice(error instanceof Error ? error.message : "Could not delete handoff.");}
+    finally{setDeleting(false);}
   }
   function open(id: string) {
     setActive(id);
@@ -330,11 +352,11 @@ function App() {
     const records = load("handoff-files-v1", fallback);
     setWorkspaceKind("files");
     setItems(records);
-    setActive(records[0].id);
+    setActive(records[0]?.id || "");
     setTab("Knowledge");
     setUseGemini(true);
     setChat([]);
-    nav("handoff");
+    nav(records.length ? "handoff" : "dashboard");
   }
   async function organizeFiles() {
     if (busy || filesLoading) return;
@@ -974,6 +996,7 @@ function App() {
                                   >
                                     <ArrowUpRight size={18} />
                                   </button>
+                                  <button className="text-link danger" disabled={deleting||importing} aria-label={"Delete " + i.name + " handoff"} onClick={()=>removeHandoff(i)}>Delete</button>
                                 </td>
                               </tr>
                             ))}
@@ -1049,6 +1072,8 @@ function App() {
                     </section>
                   </div>
                 </>
+              ) : !items.length ? (
+                <section className="card"><h1>No handoffs yet</h1><p>Create a handoff to add files and get started.</p><button className="btn" onClick={()=>setCreate(true)}>Create a handoff</button></section>
               ) : page === "handoff" ? (
                 <>
                   <button
@@ -1057,6 +1082,7 @@ function App() {
                   >
                     <ArrowLeft size={15} /> All handoffs
                   </button>
+                  <button className="text-link danger" disabled={deleting||importing} onClick={()=>removeHandoff(h)}>Delete handoff</button>
                   <div className="page-title">
                     <div>
                       <div className="eyebrow">EMPLOYEE HANDOFF</div>
@@ -1170,6 +1196,7 @@ function App() {
                         handoffId={h.id}
                         records={uploads}
                         loading={filesLoading}
+                        onBusyChange={setImporting}
                         onChange={(record) => {
                           if (activeHandoffRef.current === record.handoffId)
                             setUploads((current) => [...current, record]);

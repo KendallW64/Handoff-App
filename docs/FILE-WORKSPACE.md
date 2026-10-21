@@ -66,3 +66,7 @@ Review and edit each folder and filename, then choose **Download organized ZIP**
 Plans are temporary and reset when selected files or the active handoff changes, or the page reloads. Downloaded ZIPs remain on your device. Local categorization uses keywords and cannot read PDF/image contents; Gemini suggestions can inspect supported native attachments. Previews can omit relevant information, so review the plan before export. Only supported import formats can be included; this does not add universal file-format support.
 
 Validation: real browser tests download and unpack the ZIP, compare original text and SHA-256 hashes, test unsafe-path blocking, and exercise mocked Gemini suggestions with explicit consent. Backend tests cover 20-file organization, unsafe model output, quota and existing operations. Real Gemini organization still requires a successful test against the deployed configured Worker; automated checks mock Google.
+
+## Delete a handoff
+
+Choose **Delete** beside a handoff on the dashboard or **Delete handoff** on its detail page, then confirm the browser dialog. Cancel keeps everything. Confirm removes the handoff, saved summaries/manuals and its uploaded originals from this browser. Other handoffs' files and already downloaded copies are unchanged. This cannot be undone. Deletion is disabled while files are being imported. Deleting the last handoff leaves an empty workspace; create a new handoff to continue. Reloading or re-entering does not restore deleted demo records.

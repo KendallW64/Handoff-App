@@ -178,7 +178,7 @@ test("desktop presentation, keyboard dialogs, and scoped knowledge", async ({
 test("empty or corrupt saved records recover without a blank workspace", async ({
   page,
 }) => {
-  for (const stored of ["[]", "{broken-json"]) {
+  for (const stored of ["{broken-json"]) {
     await page.goto("./");
     await page.evaluate(
       (value) => localStorage.setItem("handoff-demo-v1", value),

@@ -82,3 +82,5 @@ The owner subsequently confirmed the site loads in both regular Chrome and Incog
 The existing mocked Gemini UI regression suite also passed **3/3**, none skipped, and the updated Worker bundled successfully in a Wrangler dry-run. Across production-static, backend and Gemini UI suites, **22 tests passed**. No new live upload request was exercised by those tests.
 
 Organization checks: `npm run test:backend` includes safe paths, unique destinations, extension preservation, 20-file AI plans and consent tests. `npm run test:pages` includes a real ZIP download/unpack/hash comparison and mocked Gemini folder suggestions. No actual model calls are made in these suites. The summary endpoint now accepts summary requests without an unrelated question field, matching the UI.
+
+Deletion tests exercise cancellation, confirmed removal from both detail and list, removal of only the target's IndexedDB files, preservation of other files, persistence across reload, and an empty workspace after deleting its last handoff.

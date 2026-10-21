@@ -1,0 +1,31 @@
+import {test,expect} from '@playwright/test';
+test('delete confirms, removes only the target handoff and files, and persists empty workspaces',async({page})=>{
+ await page.goto('./');await page.getByRole('button',{name:'Use my own files'}).click();
+ await expect(page.getByLabel('Upload files')).toBeEnabled();
+ await page.getByLabel('Upload files').setInputFiles({name:'delete-me.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic document to delete.')});
+ await expect(page.getByLabel('Include delete-me.txt')).toBeVisible();
+ await page.evaluate(()=>new Promise<void>((resolve,reject)=>{const req=indexedDB.open('handoff-documents',1);req.onsuccess=()=>{const db=req.result;const tx=db.transaction('documents','readwrite');tx.objectStore('documents').put({id:'upload_other',handoffId:'other-handoff',resource:{id:'upload_other',title:'other.txt',category:'Uploaded',text:'keep'},original:new Blob(['keep'])});tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>reject(Error('fixture failed'));};}));
+ page.once('dialog',dialog=>dialog.dismiss());
+ await page.getByRole('button',{name:'Delete handoff',exact:true}).click();
+ await expect(page.getByRole('heading',{name:/Your documents/})).toBeVisible();
+ page.once('dialog',dialog=>dialog.accept());
+ await page.getByRole('button',{name:'Delete handoff',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Delete Your documents handoff'})).toHaveCount(0);
+ await expect.poll(()=>page.evaluate(()=>localStorage.getItem('handoff-files-v1'))).toBe('[]');
+ const ids=await page.evaluate(()=>new Promise<string[]>((resolve)=>{const req=indexedDB.open('handoff-documents',1);req.onsuccess=()=>{const db=req.result;const all=db.transaction('documents').objectStore('documents').getAll();all.onsuccess=()=>{resolve(all.result.map(r=>r.id));db.close();};};}));
+ expect(ids).toEqual(['upload_other']);
+ await page.reload();await page.getByRole('button',{name:'Use my own files'}).click();
+ await expect(page.getByRole('button',{name:'Delete Your documents handoff'})).toHaveCount(0);
+ await page.getByRole('button',{name:'Ask Handoff',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'No handoffs yet'})).toBeVisible();
+ await page.getByRole('button',{name:'Create a handoff',exact:true}).click();
+ await expect(page.getByRole('dialog')).toBeVisible();
+});
+test('delete from demo table keeps other handoffs and persists after reload',async({page})=>{
+ await page.goto('./');await page.getByRole('button',{name:'Explore the demo'}).click();await page.getByRole('button',{name:'Enter demo workspace'}).click();
+ page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:'Delete Alex Morgan handoff'}).click();
+ await expect(page.getByRole('button',{name:'Open Alex Morgan handoff'})).toHaveCount(0);
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('handoff-demo-v1')!).length)).toBeGreaterThan(0);
+ await page.reload();await page.getByRole('button',{name:'Explore the demo'}).click();await page.getByRole('button',{name:'Enter demo workspace'}).click();
+ await expect(page.getByRole('button',{name:'Open Alex Morgan handoff'})).toHaveCount(0);
+});

@@ -13,12 +13,14 @@ export function UploadPanel({
   loading,
   onChange,
   onRemove,
+  onBusyChange,
 }: {
   handoffId: string;
   records: UploadRecord[];
   loading: boolean;
   onChange: (record: UploadRecord) => void;
   onRemove: (id: string) => void;
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -26,6 +28,7 @@ export function UploadPanel({
   async function importFiles(files: FileList | null) {
     if (!files || busy) return;
     setBusy(true);
+    onBusyChange?.(true);
     setError("");
     setMessage("");
     let count = 0;
@@ -66,6 +69,7 @@ export function UploadPanel({
       );
     } finally {
       setBusy(false);
+      onBusyChange?.(false);
     }
   }
   return (
