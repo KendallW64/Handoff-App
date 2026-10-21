@@ -1776,3 +1776,12 @@ dd {
   white-space: normal;
   text-align: left;
 }
+
+.organization-panel {margin:28px 0;padding:24px;border:1px solid var(--border,#dde4e7);border-radius:16px;background:#f8fafb;}
+.organization-actions {display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;}
+.organization-rows {display:grid;gap:14px;margin:20px 0;}
+.organization-row {display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px;background:white;border:1px solid #dde4e7;border-radius:10px;min-width:0;}
+.organization-row b,.organization-row small,.organization-row code {grid-column:1/-1;overflow-wrap:anywhere;}
+.organization-row label {display:flex;flex-direction:column;gap:6px;min-width:0;}
+.organization-row input {width:100%;box-sizing:border-box;padding:10px;border:1px solid #b8c8cd;border-radius:6px;}
+@media(max-width:640px){.organization-row{grid-template-columns:1fr}.organization-panel{padding:14px}}

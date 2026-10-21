@@ -396,3 +396,22 @@ test("native image/PDF content uses Gemini inline parts and unselected/forged fi
     502,
   );
 });
+
+test('organization supports 20 authorized uploads, preview limits and rejects unsafe model paths',async()=>{
+ const docs=Array.from({length:20},(_,i)=>({id:'upload_'+i,title:'invoice'+i+'.txt',text:'Invoice '.repeat(900)}));
+ const input={...body,mode:'organize',question:undefined,sourceIds:docs.map(d=>d.id),uploadedDocuments:docs,contentConsent:true};
+ // The request text cap still applies; callers send previews.
+ input.uploadedDocuments=docs.map(d=>({...d,text:d.text.slice(0,4000)}));
+ const entries=docs.map(d=>({id:d.id,folder:'Finance',name:d.title,reason:'Invoice.'}));
+ let calls=0;
+ const worker=createWorker(async(_url,options)=>{calls++;const payload=JSON.parse(options.body);const content=JSON.parse(payload.contents[0].parts[0].text);assert.equal(content.documents.length,20);assert.ok(content.documents.every(d=>d.text.length<=4000));return provider({entries})();});
+ assert.equal((await worker.fetch(request(input),environment())).status,200);assert.equal(calls,1);
+ assert.equal((await worker.fetch(request({...input,contentConsent:false}),environment())).status,400);
+ assert.equal((await worker.fetch(request({...input,mode:'summary'}),environment())).status,400);
+ const bad=createWorker(provider({entries:entries.map((e,i)=>i===0?{...e,folder:'../escape'}:e)}));
+ assert.equal((await bad.fetch(request(input),environment())).status,502);
+});
+test('summary does not require an unrelated question',async()=>{
+ const worker=createWorker(provider({text:'Migration runbook summary.',sourceIds:['migration'],insufficientEvidence:false}));
+ assert.equal((await worker.fetch(request({...body,mode:'summary',question:undefined}),environment())).status,200);
+});

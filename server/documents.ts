@@ -3,13 +3,13 @@ export function selectedDocuments(body: Record<string, any>): Resource[] {
   if (
     !Array.isArray(body.sourceIds) ||
     !body.sourceIds.length ||
-    body.sourceIds.length > 12 ||
+    body.sourceIds.length > (body.mode === "organize" ? 20 : 12) ||
     new Set(body.sourceIds).size !== body.sourceIds.length
   )
     throw Error("Select between 1 and 12 distinct sources.");
   const uploads = body.uploadedDocuments ?? [];
-  if (!Array.isArray(uploads) || uploads.length > 8)
-    throw Error("Select no more than 8 uploaded files.");
+  if (!Array.isArray(uploads) || uploads.length > (body.mode === "organize" ? 20 : 8))
+    throw Error("Select no more than 8 uploaded files, or 20 for organization.");
   if (uploads.length && body.contentConsent !== true)
     throw Error("Confirm permission to send selected file contents to Google.");
   if (!uploads.length && body.fictionalDataOnly !== true)
@@ -78,6 +78,7 @@ export function selectedDocuments(body: Record<string, any>): Resource[] {
     }
     return resource;
   });
+  if (body.mode === "organize" && (!validated.length || validated.length !== body.sourceIds.length)) throw Error("Organization requires only uploaded files.");
   const library = [...resources, ...validated];
   if (
     body.sourceIds.some(

@@ -1,3 +1,4 @@
+import {OrganizationPanel, type SavedOrganization} from "./OrganizationPanel";
 import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -122,6 +123,7 @@ function App() {
   const [uploads, setUploads] = useState<UploadRecord[]>([]);
   const [filesLoading, setFilesLoading] = useState(true);
   const [filesError, setFilesError] = useState("");
+  const [organization,setOrganization] = useState<SavedOrganization>();
   const [fileConsent, setFileConsent] = useState(false);
   useEffect(() => {
     let cancelled = false;
@@ -158,6 +160,7 @@ function App() {
   }, [active, page, useGemini, selectedFingerprint]);
   useEffect(() => {
     setFileConsent(false);
+    setOrganization(undefined);
     setChat([]);
   }, [active, selectedFingerprint]);
   const [chat, setChat] = useState<
@@ -332,6 +335,17 @@ function App() {
     setUseGemini(true);
     setChat([]);
     nav("handoff");
+  }
+  async function organizeFiles() {
+    if (busy || filesLoading) return;
+    const version = ++requestVersion.current;
+    setBusy(true); setAiError("");
+    try {
+      const selected = uploads.filter(record=>h.selected.includes(record.id)).map(record=>record.resource);
+      const result = await requestAi("organize", {...h,selected:selected.map(r=>r.id)}, undefined, selected, fileConsent) as SavedOrganization;
+      if (version === requestVersion.current) setOrganization(result);
+    } catch(error) { if(version === requestVersion.current) setAiError(error instanceof Error?error.message:"Organization failed."); }
+    finally {if(version === requestVersion.current) setBusy(false);}
   }
   async function summarizeFiles() {
     if (busy || filesLoading) return;
@@ -1184,6 +1198,10 @@ function App() {
                         }}
                       />
                       {aiControls}
+                      <div className="organization-actions">
+                        <button className="btn secondary" disabled={filesLoading || !uploads.length} onClick={()=>update({selected:[...new Set([...h.selected,...uploads.map(r=>r.id)])],generated:false,approved:false,aiManual:undefined,summary:undefined})}>Select all files</button>
+                        <button className="btn secondary" disabled={filesLoading || !h.selected.some(id=>id.startsWith("upload_"))} onClick={()=>update({selected:h.selected.filter(id=>!id.startsWith("upload_")),generated:false,approved:false,aiManual:undefined,summary:undefined})}>Clear file selection</button>
+                      </div>
                       <div className="resource-list">
                         {library.map((r) => (
                           <div className="resource-row" key={r.id}>
@@ -1228,6 +1246,7 @@ function App() {
                         Changing selected sources resets the manual and approval
                         so the next version can be reviewed.
                       </p>
+                      <OrganizationPanel key={"organization-"+h.id} records={uploads.filter(record=>h.selected.includes(record.id))} plan={organization} busy={busy||filesLoading} aiEnabled={useGemini&&fileConsent} onChange={setOrganization} onAi={organizeFiles}/>
                       <div className="summary-panel">
                         <h3>Get the useful details, faster</h3>
                         <p>

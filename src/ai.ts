@@ -1,3 +1,4 @@
+import { validateOrganization } from "./organization";
 import { resources, type Handoff, type Resource, type AiManual } from "./data";
 export type { AiManual } from "./data";
 export const apiUrl = (
@@ -29,7 +30,7 @@ export function isAiManual(value: unknown): value is AiManual {
   );
 }
 export async function requestAi(
-  mode: "manual" | "answer" | "summary",
+  mode: "manual" | "answer" | "summary" | "organize",
   handoff: Handoff,
   question?: string,
   library: Resource[] = resources,
@@ -46,7 +47,7 @@ export async function requestAi(
   )
     throw new Error("The backend must use HTTPS.");
   const selected = library.filter((r) => handoff.selected.includes(r.id));
-  const uploads = selected.filter((r) => r.origin === "upload");
+  const uploads = selected.filter((r) => r.origin === "upload").map(r => mode === "organize" ? {...r, text:r.text.slice(0,4000)} : r);
   if (selected.length !== handoff.selected.length)
     throw new Error(
       "Some selected files are still loading or missing. Reattach them or select other sources.",
@@ -103,6 +104,7 @@ export async function requestAi(
     throw new Error(result?.error || "The AI backend returned an error.");
   if (result?.provider !== "gemini" || typeof result.model !== "string")
     throw new Error("The AI backend returned an invalid response.");
+  if (mode === "organize") return { entries:validateOrganization(result.entries, uploads), model:result.model };
   const handoffSource: Resource = {
     id: "handoff",
     title: "Handoff details",

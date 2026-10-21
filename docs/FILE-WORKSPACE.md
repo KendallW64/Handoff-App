@@ -54,3 +54,15 @@ Pushes to `main` use the existing Pages workflow for the frontend and the owner'
 The owner previously confirmed Gemini manuals and questions on sample documents. New file extraction, transport, citations and workflow behavior have been tested using synthetic files and mocked provider responses. Actual new-format model processing, especially visual/PDF interpretation, still needs a successful live request after deployment. Do not label mocked tests as a real OCR or provider evaluation.
 
 A sensible first live check uses a small non-confidential file containing a fictional deadline, then verifies the summary and source reference. Follow with one small PDF/image and check the original. Avoid repeated retries: the shared quota is intentionally small.
+
+## Organize selected files into a ZIP
+
+In Knowledge, import files and choose **Select all files**, or check individual files. **Clear file selection** clears uploads while preserving any selected demo sources.
+
+Choose **Build folder plan** for free browser-local keyword suggestions. Alternatively enable Gemini, confirm authorization to send selected content to Google, and choose **Suggest folders with Gemini**. This sends filenames, up to 4,000 extracted characters per selected file, and original selected PDF/image attachments (3 MB combined). It uses one of the existing 10 shared daily AI requests. It does not provision paid resources or change billing settings.
+
+Review and edit each folder and filename, then choose **Download organized ZIP**. The ZIP contains original file bytes under the reviewed destinations and `_handoff_manifest.json` mapping original names to export paths, reasons, sizes, and SHA-256 checksums. ZIP creation runs in a browser worker without an AI request or upload. Original stored files are unchanged. Maximum 20 selected files and 50 MB of originals per export. Paths, extensions, duplicate destinations and file/folder conflicts are validated in the browser and again by the ZIP worker. AI plans are also validated server-side.
+
+Plans are temporary and reset when selected files or the active handoff changes, or the page reloads. Downloaded ZIPs remain on your device. Local categorization uses keywords and cannot read PDF/image contents; Gemini suggestions can inspect supported native attachments. Previews can omit relevant information, so review the plan before export. Only supported import formats can be included; this does not add universal file-format support.
+
+Validation: real browser tests download and unpack the ZIP, compare original text and SHA-256 hashes, test unsafe-path blocking, and exercise mocked Gemini suggestions with explicit consent. Backend tests cover 20-file organization, unsafe model output, quota and existing operations. Real Gemini organization still requires a successful test against the deployed configured Worker; automated checks mock Google.

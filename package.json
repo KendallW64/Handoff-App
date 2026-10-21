@@ -12,7 +12,7 @@
     "test:live": "playwright test --config playwright.live.config.ts",
     "backend:dev": "wrangler dev",
     "backend:deploy": "wrangler deploy",
-    "test:backend": "node --test server/worker.test.mjs",
+    "test:backend": "node --test server/worker.test.mjs server/organization.test.mjs",
     "check:backend": "tsc -p tsconfig.server.json",
     "test:gemini": "playwright test --config playwright.gemini.config.ts"
   },
