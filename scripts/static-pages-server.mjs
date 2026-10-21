@@ -7,6 +7,7 @@ const mount = "/Handoff-App/";
 const mime = {
   ".html": "text/html",
   ".js": "text/javascript",
+  ".mjs": "text/javascript",
   ".css": "text/css",
   ".woff": "font/woff",
   ".woff2": "font/woff2",

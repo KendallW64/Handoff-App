@@ -2,7 +2,13 @@
 
 **Knowledge stays. Teams move forward.**
 
-A functional, browser-based employee knowledge transfer prototype. Handoff is the software provider; BridgePoint is a fictional Atlanta IT consulting customer. Every person, document, client, and project is fictional. Use sample information only.
+A functional, browser-based employee knowledge transfer prototype. Handoff is the software provider; BridgePoint is a fictional Atlanta IT consulting customer. Every built-in BridgePoint person, document, client, and project is fictional. The separate file workspace accepts your own authorized files.
+
+## Use your own files
+
+Choose **Use my own files** on the public website. Import supported business files, select them, confirm permission to send them to Gemini, and choose **Generate document summary**. You can also generate a six-part manual and ask questions with source references. Files persist per handoff in this browser; the BridgePoint demo remains separate.
+
+[File workspace guide](docs/FILE-WORKSPACE.md) lists exact formats, extraction limitations, size limits, privacy, and deployment steps. This is a working individual file workflow, not production company authentication or shared cloud storage. New-format model interpretation still requires a live check after deployment.
 
 ## Run locally
 
@@ -32,23 +38,25 @@ Creation and source-review dialogs are panels within these screens. Leave worksp
 
 ## Optional Gemini connection
 
-A server-side Gemini adapter and frontend controls are now implemented. Follow [Gemini setup](docs/GEMINI-SETUP.md) to deploy a Cloudflare Worker, privately configure the key, and connect the public backend URL. It starts disabled, uses fictional sources only, and caps shared model requests at 10 per UTC day. The connection is **not deployed or live-tested** yet. Sample mode remains the default; successful AI outputs are explicitly labeled with their model.
+A server-side Gemini adapter and frontend controls are now implemented. Follow [Gemini setup](docs/GEMINI-SETUP.md) to deploy a Cloudflare Worker, privately configure the key, and connect the public backend URL. The owner deployment is configured for Gemini, and missing credentials still fail closed. It supports selected demo sources or authorized uploads and caps shared model requests at 10 per UTC day. The owner confirmed the deployed sample-document connection works. Uploaded-file extraction and transport are now implemented and tested locally; new file formats still need a live model check. Sample mode remains the demo default; the personal file workspace enables Gemini controls but sends nothing until processing is requested with permission. Successful AI outputs are explicitly labeled with their model.
 
 ## Implemented versus simulated
 
-**Implemented:** responsive navigation, labeled forms with required fields, whitespace validation, fictional handoff creation, local persistence, dashboard filtering, source selection and reading, manual assembly, approval, source-change invalidation, question matching with source references, and print styling. Dialogs support Escape, trapped keyboard focus, and focus restoration.
+**Implemented:** responsive navigation, labeled forms with required fields, whitespace validation, fictional handoff creation, local persistence, dashboard filtering, source selection and reading, browser-local file import and extraction, document summaries, manual assembly, approval, source-change invalidation, question matching with source references, and print styling. Dialogs support Escape, trapped keyboard focus, and focus restoration.
 
-**Simulated by default:** authentication (no identity verification or security boundary), enterprise integrations (a built-in sample library only), and AI (deterministic local templates and keyword retrieval, not an LLM). Questions return matching source passages rather than independent generated claims. The same fictional library is available to every handoff, and only selected documents are used. There is no upload service or connection to company systems. Optional Gemini mode can use real model responses after backend configuration; it never silently substitutes sample responses for provider failures.
+**Simulated in the demo:** authentication (no identity verification or security boundary), enterprise integrations (a built-in sample library only), and AI (deterministic local templates and keyword retrieval, not an LLM). Questions return matching source passages rather than independent generated claims. The fictional library is available in the demo; the separate personal file workspace uses only its own uploaded files. Only selected sources are sent to the model. There is now browser-local file importing and request-scoped processing through Gemini; there is no shared cloud file service or connection to company systems. Optional Gemini mode can use real model responses after backend configuration; it never silently substitutes sample responses for provider failures.
 
 Manual sections identify whether their source is user-entered demo handoff details or selected sample documents. The Why and How sections preserve source passages to keep the demonstration verifiable; they are starting points for human review, not expert recommendations.
 
-Browser localStorage stores handoff records on the current browser and origin. Records are not synchronized between devices, encrypted by this app, or sent to a server. Clearing site data clears records. Storage failures show a warning; corrupt/incompatible saved data falls back to sample records. To reset, clear the `handoff-demo-v1` localStorage key in browser developer tools. Do not store real employee data.
+Browser localStorage stores handoff records and derived outputs; IndexedDB stores uploaded originals and extracted content on the current browser and origin. Records are not synchronized between devices, encrypted by this app, or sent to a server. Clearing site data clears records. Storage failures show a warning; corrupt/incompatible saved data falls back to sample records. To reset, clear the `handoff-demo-v1` localStorage key in browser developer tools. Only process data you are authorized to send to Google under your API data terms; this is not a production employee-record system.
 
 ## Code map and decisions
 
 - `src/main.tsx`: screen navigation, forms, workflow interactions, and application state.
 - `src/data.ts`: typed domain records, fictional source library, manual assembly, and source-scoped answer retrieval. These functions can later be replaced by backend APIs.
 - `src/style.css`: responsive design and print styles.
+- `src/documents.ts`, `src/extract.worker.ts`, `src/UploadPanel.tsx`: per-handoff IndexedDB files, bounded extraction workers, imports/download/removal.
+- `server/documents.ts`: selected-source, consent, size and attachment validation before Gemini.
 - `tests/workflow.spec.ts`: real-browser acceptance tests.
 - `package-lock.json`: exact dependency versions, used by `npm ci`.
 

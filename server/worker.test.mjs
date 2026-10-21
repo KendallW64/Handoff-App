@@ -151,8 +151,12 @@ test("origin restriction, preflight, invalid documents and malformed bodies", as
     400,
   );
   assert.equal(
-    (await worker.fetch(request({ ...body, extra: "x".repeat(17000) }), env))
-      .status,
+    (
+      await worker.fetch(
+        request({ ...body, extra: "x".repeat(5 * 1024 * 1024 + 1) }),
+        env,
+      )
+    ).status,
     413,
   );
 });
@@ -231,5 +235,164 @@ test("provider errors, incomplete output, and unavailable usage database are san
   assert.equal(
     (await createWorker(provider()).fetch(request(), env)).status,
     503,
+  );
+});
+
+test("uploaded-file summaries forward only explicitly selected content and require consent", async () => {
+  const upload = {
+    id: "upload_orion",
+    title: "renewal.txt",
+    text: "Orion renewal is due Friday.",
+    category: "Uploaded file",
+  };
+  const input = {
+    ...body,
+    mode: "summary",
+    sourceIds: [upload.id],
+    uploadedDocuments: [upload],
+    fictionalDataOnly: false,
+    contentConsent: true,
+  };
+  let calls = 0;
+  const worker = createWorker(async (_url, options) => {
+    calls++;
+    const prompt = JSON.parse(options.body);
+    const content = JSON.parse(prompt.contents[0].parts[0].text);
+    assert.deepEqual(
+      content.documents.map((doc) => doc.id),
+      ["upload_orion"],
+    );
+    assert.ok(!options.body.includes("Atlas migration"));
+    return provider({
+      text: "Orion renewal is due Friday.",
+      sourceIds: ["upload_orion"],
+      insufficientEvidence: false,
+    })();
+  });
+  assert.equal(
+    (
+      await worker.fetch(
+        request({ ...input, contentConsent: false }),
+        environment(),
+      )
+    ).status,
+    400,
+  );
+  const unsupported = createWorker(
+    provider({
+      text: "Generic handoff details",
+      sourceIds: ["handoff"],
+      insufficientEvidence: false,
+    }),
+  );
+  assert.equal(
+    (await unsupported.fetch(request(input), environment())).status,
+    502,
+  );
+  const response = await worker.fetch(request(input), environment());
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).text, "Orion renewal is due Friday.");
+  assert.equal(calls, 1);
+  assert.equal(
+    (
+      await worker.fetch(
+        request({ ...input, sourceIds: ["migration"] }),
+        environment(),
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await worker.fetch(
+        request({
+          ...input,
+          uploadedDocuments: [{ ...upload, text: "x".repeat(120001) }],
+        }),
+        environment(),
+      )
+    ).status,
+    400,
+  );
+});
+test("native image/PDF content uses Gemini inline parts and unselected/forged file citations are rejected", async () => {
+  const upload = {
+    id: "upload_scan",
+    title: "scan.pdf",
+    text: "PDF attachment",
+    inlineData: {
+      mimeType: "application/pdf",
+      data: Buffer.from("%PDF-1.7 synthetic fixture").toString("base64"),
+    },
+  };
+  const input = {
+    ...body,
+    sourceIds: [upload.id],
+    uploadedDocuments: [upload],
+    fictionalDataOnly: false,
+    contentConsent: true,
+  };
+  const worker = createWorker(async (_url, options) => {
+    const prompt = JSON.parse(options.body);
+    const parts = prompt.contents[0].parts;
+    assert.equal(parts[2].inlineData.mimeType, "application/pdf");
+    assert.ok(!("inlineData" in JSON.parse(parts[0].text).documents[0]));
+    return provider({
+      text: "File-backed answer",
+      sourceIds: ["upload_scan"],
+      insufficientEvidence: false,
+    })();
+  });
+  assert.equal((await worker.fetch(request(input), environment())).status, 200);
+  assert.equal(
+    (
+      await worker.fetch(
+        request({
+          ...input,
+          uploadedDocuments: [
+            {
+              ...upload,
+              inlineData: {
+                mimeType: "text/html",
+                data: upload.inlineData.data,
+              },
+            },
+          ],
+        }),
+        environment(),
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await worker.fetch(
+        request({
+          ...input,
+          uploadedDocuments: [
+            {
+              ...upload,
+              inlineData: {
+                mimeType: "application/pdf",
+                data: Buffer.from("not pdf").toString("base64"),
+              },
+            },
+          ],
+        }),
+        environment(),
+      )
+    ).status,
+    400,
+  );
+  const invalid = createWorker(
+    provider({
+      text: "Wrong document",
+      sourceIds: ["client"],
+      insufficientEvidence: false,
+    }),
+  );
+  assert.equal(
+    (await invalid.fetch(request(input), environment())).status,
+    502,
   );
 });

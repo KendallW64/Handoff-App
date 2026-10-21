@@ -1673,3 +1673,106 @@ dd {
   font-size: 11px;
   margin: 10px 0 0;
 }
+.personal-entry {
+  border-top: 1px solid #e0e7e7;
+  margin-top: 25px;
+  padding-top: 22px;
+}
+.personal-entry h3 {
+  font-size: 16px;
+}
+.personal-entry p {
+  font-size: 12px;
+}
+.upload-panel {
+  border: 1px dashed #89aaa0;
+  border-radius: 9px;
+  padding: 22px;
+  background: #f8fbfa;
+  margin-top: 22px;
+}
+.upload-panel > p {
+  font-size: 12px;
+}
+.upload-picker input {
+  display: block;
+  padding: 12px;
+  background: white;
+  max-width: 100%;
+}
+.uploaded-files {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+}
+.uploaded-files li {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  border-top: 1px solid #dfe9e4;
+  padding: 12px 0;
+  flex-wrap: wrap;
+}
+.uploaded-files li > span {
+  flex: 1;
+  min-width: 160px;
+}
+.uploaded-files b {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.uploaded-files small {
+  display: block;
+  color: #6e847e;
+  margin-top: 5px;
+}
+.file-consent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 18px 0;
+}
+.file-consent input {
+  margin: 0;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: #377b6d;
+}
+.summary-panel {
+  border-block: 1px solid #dce5e5;
+  margin: 25px 0;
+  padding: 23px 0;
+}
+.summary-panel p {
+  font-size: 13px;
+}
+.document-summary {
+  margin-top: 22px;
+  border-radius: 8px;
+  background: #f4f8f6;
+  padding: 20px;
+}
+.document-summary > .text-link {
+  margin-top: 20px;
+}
+.hero-actions {
+  flex-wrap: wrap;
+}
+.resource-row > div {
+  min-width: 0;
+}
+.resource-row b,
+.modal h2,
+.document-summary p,
+.manual-section p {
+  overflow-wrap: anywhere;
+}
+.source {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  text-align: left;
+}

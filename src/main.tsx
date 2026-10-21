@@ -40,12 +40,18 @@ import "@fontsource/manrope/700.css";
 import "./style.css";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { requestAi, isAiManual, type AiManual } from "./ai";
+import { UploadPanel } from "./UploadPanel";
+import {
+  listDocuments,
+  downloadOriginal,
+  type UploadRecord,
+} from "./documents";
 import { AiControls } from "./AiControls";
 type Page = "home" | "signin" | "dashboard" | "handoff" | "ask";
 const storageKey = "handoff-demo-v1";
-function load(): Handoff[] {
+function load(key = storageKey, fallback = initialHandoffs): Handoff[] {
   try {
-    const v = JSON.parse(localStorage.getItem(storageKey) || "null");
+    const v = JSON.parse(localStorage.getItem(key) || "null");
     if (
       Array.isArray(v) &&
       v.length > 0 &&
@@ -68,19 +74,39 @@ function load(): Handoff[] {
           typeof h.approved === "boolean",
       )
     )
-      return v.map(({ aiManual, ...record }) => ({
+      return v.map(({ aiManual, summary, ...record }) => ({
         ...record,
         ...(isAiManual(aiManual) ? { aiManual } : {}),
+        ...(summary &&
+        typeof summary.text === "string" &&
+        typeof summary.model === "string" &&
+        Array.isArray(summary.sources) &&
+        summary.sources.every(
+          (source: Resource) =>
+            source &&
+            ["id", "title", "category", "text"].every(
+              (key) =>
+                typeof (source as unknown as Record<string, unknown>)[key] ===
+                "string",
+            ),
+        )
+          ? { summary }
+          : {}),
       }));
   } catch {}
-  return initialHandoffs;
+  return fallback;
 }
 function App() {
   useEffect(() => {
     window.dispatchEvent(new Event("handoff:ready"));
   }, []);
   const [page, setPage] = useState<Page>("home");
-  const [items, setItems] = useState<Handoff[]>(load);
+  const [workspaceKind, setWorkspaceKind] = useState<"demo" | "files">("demo");
+  const [items, setItems] = useState<Handoff[]>(() => load());
+  const itemsRef = React.useRef(items);
+  itemsRef.current = items;
+  const workspaceRef = React.useRef(workspaceKind);
+  workspaceRef.current = workspaceKind;
   const [active, setActive] = useState("h1");
   const [tab, setTab] = useState("Overview");
   const [create, setCreate] = useState(false);
@@ -91,6 +117,36 @@ function App() {
   const [question, setQuestion] = useState("");
   const [useGemini, setUseGemini] = useState(false);
   const [busy, setBusy] = useState(false);
+  const activeHandoffRef = React.useRef(active);
+  activeHandoffRef.current = active;
+  const [uploads, setUploads] = useState<UploadRecord[]>([]);
+  const [filesLoading, setFilesLoading] = useState(true);
+  const [filesError, setFilesError] = useState("");
+  const [fileConsent, setFileConsent] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    setUploads([]);
+    setFilesLoading(true);
+    setFilesError("");
+    setFileConsent(false);
+    listDocuments(active)
+      .then((records) => {
+        if (!cancelled) setUploads(records);
+      })
+      .catch((error) => {
+        if (!cancelled) setFilesError(error.message);
+      })
+      .finally(() => {
+        if (!cancelled) setFilesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [active]);
+  const library = [
+    ...(workspaceKind === "demo" ? resources : []),
+    ...uploads.map((record) => record.resource),
+  ];
   const [aiError, setAiError] = useState("");
   const requestVersion = React.useRef(0);
   const selectedFingerprint =
@@ -100,6 +156,10 @@ function App() {
     setBusy(false);
     setAiError("");
   }, [active, page, useGemini, selectedFingerprint]);
+  useEffect(() => {
+    setFileConsent(false);
+    setChat([]);
+  }, [active, selectedFingerprint]);
   const [chat, setChat] = useState<
     { q: string; text: string; sources: Resource[]; model?: string }[]
   >([]);
@@ -143,10 +203,42 @@ function App() {
     };
   }, [create, source]);
   const h = items.find((i) => i.id === active) || items[0];
-  function save(next: Handoff[]) {
-    setItems(next);
+  function save(next: Handoff[], kind = workspaceKind) {
+    if (workspaceRef.current === kind) {
+      itemsRef.current = next;
+      setItems(next);
+    }
+    // Keep uploaded file bytes/text in IndexedDB; citation references need only metadata here.
+    const strip = (source: Resource) =>
+      source.origin === "upload"
+        ? {
+            id: source.id,
+            title: source.title,
+            category: source.category,
+            origin: source.origin,
+            text: "",
+          }
+        : source;
+    const stored = next.map((record) => ({
+      ...record,
+      aiManual: record.aiManual
+        ? {
+            ...record.aiManual,
+            sections: record.aiManual.sections.map((section) => ({
+              ...section,
+              sources: section.sources.map(strip),
+            })),
+          }
+        : undefined,
+      summary: record.summary
+        ? { ...record.summary, sources: record.summary.sources.map(strip) }
+        : undefined,
+    }));
     try {
-      localStorage.setItem(storageKey, JSON.stringify(next));
+      localStorage.setItem(
+        kind === "demo" ? storageKey : "handoff-files-v1",
+        JSON.stringify(stored),
+      );
       setNotice("");
     } catch {
       setNotice(
@@ -154,8 +246,21 @@ function App() {
       );
     }
   }
-  function update(changes: Partial<Handoff>) {
-    save(items.map((i) => (i.id === h.id ? { ...i, ...changes } : i)));
+  function update(
+    changes: Partial<Handoff> | ((record: Handoff) => Partial<Handoff>),
+  ) {
+    const current =
+      workspaceRef.current === workspaceKind
+        ? itemsRef.current
+        : load(workspaceKind === "demo" ? storageKey : "handoff-files-v1", []);
+    save(
+      current.map((i) =>
+        i.id === h.id
+          ? { ...i, ...(typeof changes === "function" ? changes(i) : changes) }
+          : i,
+      ),
+      workspaceKind,
+    );
   }
   function open(id: string) {
     setActive(id);
@@ -170,7 +275,7 @@ function App() {
   async function ask(q: string) {
     if (!q.trim() || busy) return;
     if (!useGemini) {
-      setChat((c) => [...c, { q: q.trim(), ...answer(q, h) }]);
+      setChat((c) => [...c, { q: q.trim(), ...answer(q, h, library) }]);
       setQuestion("");
       return;
     }
@@ -178,7 +283,13 @@ function App() {
     setBusy(true);
     setAiError("");
     try {
-      const result = (await requestAi("answer", h, q)) as {
+      const result = (await requestAi(
+        "answer",
+        h,
+        q,
+        library,
+        fileConsent,
+      )) as {
         text: string;
         sources: Resource[];
         model: string;
@@ -196,6 +307,55 @@ function App() {
       if (version === requestVersion.current) setBusy(false);
     }
   }
+  function enterFiles() {
+    const fallback: Handoff[] = [
+      {
+        id: "personal-handoff",
+        name: "Your documents",
+        role: "Document owner",
+        department: "Your workspace",
+        recipient: "You",
+        type: "Document review",
+        due: new Date().toISOString().slice(0, 10),
+        responsibilities:
+          "Summarize the selected files and identify responsibilities, dates, decisions, and next steps.",
+        selected: [],
+        generated: false,
+        approved: false,
+      },
+    ];
+    const records = load("handoff-files-v1", fallback);
+    setWorkspaceKind("files");
+    setItems(records);
+    setActive(records[0].id);
+    setTab("Knowledge");
+    setUseGemini(true);
+    setChat([]);
+    nav("handoff");
+  }
+  async function summarizeFiles() {
+    if (busy || filesLoading) return;
+    const version = ++requestVersion.current;
+    setBusy(true);
+    setAiError("");
+    try {
+      const result = (await requestAi(
+        "summary",
+        h,
+        undefined,
+        library,
+        fileConsent,
+      )) as { text: string; sources: Resource[]; model: string };
+      if (version === requestVersion.current) update({ summary: result });
+    } catch (error) {
+      if (version === requestVersion.current)
+        setAiError(
+          error instanceof Error ? error.message : "Summary generation failed.",
+        );
+    } finally {
+      if (version === requestVersion.current) setBusy(false);
+    }
+  }
   async function generateManual() {
     if (busy) return;
     if (!useGemini) {
@@ -207,7 +367,13 @@ function App() {
     setBusy(true);
     setAiError("");
     try {
-      const aiManual = (await requestAi("manual", h)) as AiManual;
+      const aiManual = (await requestAi(
+        "manual",
+        h,
+        undefined,
+        library,
+        fileConsent,
+      )) as AiManual;
       if (version === requestVersion.current) {
         save(
           items.map((i) =>
@@ -238,6 +404,18 @@ function App() {
           setAiError("");
         }}
       />
+      {h.selected.some((id) => id.startsWith("upload_")) && (
+        <label className="file-consent">
+          <input
+            type="checkbox"
+            checked={fileConsent}
+            disabled={busy}
+            onChange={(e) => setFileConsent(e.target.checked)}
+          />{" "}
+          I am authorized to send the selected files to Google for AI
+          processing.
+        </label>
+      )}
       {aiError && (
         <p role="alert" className="notice">
           {aiError}
@@ -257,7 +435,11 @@ function App() {
   const sources = (docs: Resource[]) => (
     <div className="sources">
       {docs.map((d) => (
-        <button key={d.id} className="source" onClick={() => setSource(d)}>
+        <button
+          key={d.id}
+          className="source"
+          onClick={() => setSource(library.find((r) => r.id === d.id) || d)}
+        >
           <FileText size={13} />
           {d.title}
           <ArrowUpRight size={12} />
@@ -306,6 +488,9 @@ function App() {
                     teammate needs. Make every transition a confident one.
                   </p>
                   <div className="hero-actions">
+                    <button className="btn secondary" onClick={enterFiles}>
+                      Use my own files <ArrowRight size={17} />
+                    </button>
                     <button className="btn" onClick={() => nav("signin")}>
                       Explore the demo <ArrowRight size={17} />
                     </button>
@@ -464,6 +649,11 @@ function App() {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
+                    setWorkspaceKind("demo");
+                    setItems(load());
+                    setActive("h1");
+                    setUseGemini(false);
+                    setChat([]);
                     nav("dashboard");
                   }}
                 >
@@ -486,6 +676,16 @@ function App() {
                     Enter demo workspace <ArrowRight size={17} />
                   </button>
                 </form>
+                <div className="personal-entry">
+                  <h3>Ready to use your own files?</h3>
+                  <p>
+                    Import and summarize documents in a browser-local workspace.
+                    No company sign-in or shared storage is provided.
+                  </p>
+                  <button className="btn full secondary" onClick={enterFiles}>
+                    Use my own files <ArrowRight size={17} />
+                  </button>
+                </div>
                 <button className="text-link back" onClick={() => nav("home")}>
                   <ArrowLeft size={14} /> Back to website
                 </button>
@@ -500,10 +700,16 @@ function App() {
               {logo}
             </button>
             <div className="company">
-              <span className="company-icon">B</span>
+              <span className="company-icon">
+                {workspaceKind === "demo" ? "B" : "F"}
+              </span>
               <div>
-                <b>BridgePoint</b>
-                <small>Demo workspace</small>
+                <b>{workspaceKind === "demo" ? "BridgePoint" : "Your files"}</b>
+                <small>
+                  {workspaceKind === "demo"
+                    ? "Demo workspace"
+                    : "Browser workspace"}
+                </small>
               </div>
               <span className="company-chevron">⌄</span>
             </div>
@@ -532,7 +738,10 @@ function App() {
             </nav>
             <div className="sidebar-bottom">
               <div className="sample-label">
-                <span className="green-dot" /> Fictional demonstration
+                <span className="green-dot" />{" "}
+                {workspaceKind === "demo"
+                  ? "Fictional demonstration"
+                  : "Browser-local files"}
               </div>
               <p>Real continuity starts with a thoughtful handoff.</p>
               <button
@@ -544,10 +753,18 @@ function App() {
                 <LogOut size={16} /> Leave workspace
               </button>
               <div className="profile">
-                <span className="avatar mint">JD</span>
+                <span className="avatar mint">
+                  {workspaceKind === "demo" ? "JD" : "YOU"}
+                </span>
                 <div>
-                  <b>Jamie Davis</b>
-                  <small>Demo administrator</small>
+                  <b>
+                    {workspaceKind === "demo" ? "Jamie Davis" : "Local user"}
+                  </b>
+                  <small>
+                    {workspaceKind === "demo"
+                      ? "Demo administrator"
+                      : "This browser"}
+                  </small>
                 </div>
               </div>
             </div>
@@ -565,7 +782,9 @@ function App() {
                 </b>
               </span>
               <div className="header-actions">
-                <span className="demo-badge">DEMO MODE</span>
+                <span className="demo-badge">
+                  {workspaceKind === "demo" ? "DEMO MODE" : "FILES MODE"}
+                </span>
                 <button
                   className="mobile-exit icon-button"
                   aria-label="Leave workspace"
@@ -588,7 +807,11 @@ function App() {
                 <>
                   <div className="page-title">
                     <div>
-                      <div className="eyebrow">BRIDGEPOINT WORKSPACE</div>
+                      <div className="eyebrow">
+                        {workspaceKind === "demo"
+                          ? "BRIDGEPOINT WORKSPACE"
+                          : "YOUR FILE WORKSPACE"}
+                      </div>
                       <h1>
                         A little change.
                         <br className="mobile-only" /> A lot of possibility.
@@ -773,7 +996,10 @@ function App() {
                           className="text-link"
                           onClick={() => open(items[0].id)}
                         >
-                          Explore a sample handoff <ArrowRight size={16} />
+                          {workspaceKind === "demo"
+                            ? "Explore a sample handoff"
+                            : "Open your files"}{" "}
+                          <ArrowRight size={16} />
                         </button>
                       </div>
                     </section>
@@ -895,8 +1121,9 @@ function App() {
                           </div>
                         ))}
                         <div className="demo-note">
-                          All records in this workspace are fictional. Do not
-                          enter real employee or client information.
+                          {workspaceKind === "demo"
+                            ? "BridgePoint records are fictional. Use your file workspace for your own authorized documents."
+                            : "Use only documents you are authorized to process. Google processes selected contents when you request AI; review your API data terms."}
                         </div>
                       </section>
                     </div>
@@ -906,8 +1133,8 @@ function App() {
                         <div>
                           <h2>A home for the important details</h2>
                           <p>
-                            Select sample resources to include. Open any source
-                            to review it first.
+                            Import files or select resources below, then review
+                            the source content before generating.
                           </p>
                         </div>
                         <span className="status ongoing">
@@ -915,13 +1142,50 @@ function App() {
                         </span>
                       </div>
                       <div className="demo-note">
-                        Sample library · Integration is simulated. These
-                        fictional resources are built into the prototype; no
-                        enterprise accounts are connected.
+                        {workspaceKind === "demo"
+                          ? "Sample library · BridgePoint resources are fictional. You may also import your own authorized files below."
+                          : "Your file workspace · No sample company documents are included. File contents stay in this browser until you explicitly send selected content to Gemini."}
                       </div>
+                      {filesError && (
+                        <p role="alert" className="notice">
+                          {filesError}
+                        </p>
+                      )}
+                      <UploadPanel
+                        key={h.id}
+                        handoffId={h.id}
+                        records={uploads}
+                        loading={filesLoading}
+                        onChange={(record) => {
+                          if (activeHandoffRef.current === record.handoffId)
+                            setUploads((current) => [...current, record]);
+                        }}
+                        onRemove={(id) => {
+                          if (
+                            activeHandoffRef.current === h.id &&
+                            workspaceRef.current === workspaceKind
+                          ) {
+                            setUploads((current) =>
+                              current.filter((record) => record.id !== id),
+                            );
+                            requestVersion.current++;
+                            setBusy(false);
+                            setChat([]);
+                          }
+                          update((current) => ({
+                            selected: current.selected.filter(
+                              (selected) => selected !== id,
+                            ),
+                            generated: false,
+                            approved: false,
+                            aiManual: undefined,
+                            summary: undefined,
+                          }));
+                        }}
+                      />
                       {aiControls}
                       <div className="resource-list">
-                        {resources.map((r) => (
+                        {library.map((r) => (
                           <div className="resource-row" key={r.id}>
                             <input
                               type="checkbox"
@@ -935,6 +1199,7 @@ function App() {
                                   generated: false,
                                   approved: false,
                                   aiManual: undefined,
+                                  summary: undefined,
                                 })
                               }
                             />
@@ -943,7 +1208,12 @@ function App() {
                             </span>
                             <div>
                               <b>{r.title}</b>
-                              <small>{r.category} · Sample document</small>
+                              <small>
+                                {r.category} ·{" "}
+                                {r.origin === "upload"
+                                  ? "Your file"
+                                  : "Sample document"}
+                              </small>
                             </div>
                             <button
                               className="text-link"
@@ -958,9 +1228,70 @@ function App() {
                         Changing selected sources resets the manual and approval
                         so the next version can be reviewed.
                       </p>
+                      <div className="summary-panel">
+                        <h3>Get the useful details, faster</h3>
+                        <p>
+                          Generate a source-referenced summary of only the
+                          selected files. Up to 120,000 extracted characters and
+                          3 MB of image/scanned PDF attachments per request.
+                        </p>
+                        <button
+                          className="btn"
+                          disabled={
+                            !useGemini ||
+                            !h.selected.length ||
+                            busy ||
+                            filesLoading
+                          }
+                          onClick={summarizeFiles}
+                        >
+                          Generate document summary
+                        </button>
+                        {h.summary && (
+                          <article className="document-summary">
+                            <h3>Document summary</h3>
+                            <small>
+                              Generated by Gemini ({h.summary.model})
+                            </small>
+                            <p style={{ whiteSpace: "pre-line" }}>
+                              {h.summary.text}
+                            </p>
+                            {sources(h.summary.sources)}
+                            <button
+                              className="text-link"
+                              onClick={() => {
+                                const url = URL.createObjectURL(
+                                  new Blob(
+                                    [
+                                      h.summary!.text +
+                                        "\n\nSources: " +
+                                        h
+                                          .summary!.sources.map(
+                                            (source) => source.title,
+                                          )
+                                          .join(", "),
+                                    ],
+                                    { type: "text/plain;charset=utf-8" },
+                                  ),
+                                );
+                                const link = document.createElement("a");
+                                link.href = url;
+                                link.download = "handoff-summary.txt";
+                                link.click();
+                                setTimeout(
+                                  () => URL.revokeObjectURL(url),
+                                  1000,
+                                );
+                              }}
+                            >
+                              Download summary
+                            </button>
+                          </article>
+                        )}
+                      </div>
                       <button
                         className="btn"
-                        disabled={!h.selected.length || busy}
+                        disabled={!h.selected.length || busy || filesLoading}
                         onClick={generateManual}
                       >
                         <Sparkles size={17} />{" "}
@@ -1006,27 +1337,32 @@ function App() {
                           <div className="demo-note">
                             <Sparkles size={18} />{" "}
                             {h.aiManual
-                              ? `Generated by Gemini (${h.aiManual.model}) from selected sample sources. AI may be wrong; verify every section and citation before approval.`
+                              ? `Generated by Gemini (${h.aiManual.model}) from your selected sources. AI may be wrong; verify every section and citation before approval.`
                               : "Simulated AI: this draft assembles your handoff details and selected sample sources using local templates. Review all content before approving."}
                           </div>
-                          {(h.aiManual?.sections || manual(h)).map((s) => (
-                            <article className="manual-section" key={s.title}>
-                              <h3>{s.title}</h3>
-                              <p>{s.body}</p>
-                              {s.sources.length ? (
-                                sources(s.sources)
-                              ) : (
-                                <small className="subtle">
-                                  Source: handoff details entered in this demo.
-                                </small>
-                              )}
-                            </article>
-                          ))}
+                          {(h.aiManual?.sections || manual(h, library)).map(
+                            (s) => (
+                              <article className="manual-section" key={s.title}>
+                                <h3>{s.title}</h3>
+                                <p>{s.body}</p>
+                                {s.sources.length ? (
+                                  sources(s.sources)
+                                ) : (
+                                  <small className="subtle">
+                                    Source: handoff details entered in this
+                                    demo.
+                                  </small>
+                                )}
+                              </article>
+                            ),
+                          )}
                           <div className="approval">
                             <div>
                               <h3>
                                 {h.approved
-                                  ? "Approved by Jamie Davis · Demo administrator"
+                                  ? workspaceKind === "demo"
+                                    ? "Approved by Jamie Davis · Demo administrator"
+                                    : "Approved in this browser · Not an authenticated company review"
                                   : "Ready for a human review"}
                               </h3>
                               <p>
@@ -1079,7 +1415,7 @@ function App() {
                     <div className="demo-note">
                       <Sparkles size={18} />{" "}
                       {useGemini
-                        ? "Gemini mode · Answers use only the selected fictional sample documents and handoff details. This demo is not enterprise authentication or secure company storage."
+                        ? "Gemini mode · Answers use only your selected sources and handoff details. Files are local to this browser; shared company permissions are not implemented."
                         : "Simulated AI · Answers retrieve matching selected sample documents, with sources. No external AI service is used."}
                     </div>
                     {aiControls}
@@ -1162,7 +1498,11 @@ function App() {
               )}
               <div className="workspace-footer">
                 <span>Knowledge stays. Teams move forward.</span>
-                <span>Handoff prototype · Fictional data only</span>
+                <span>
+                  {workspaceKind === "demo"
+                    ? "Handoff demo · Fictional records"
+                    : "Handoff · Browser-local file workspace"}
+                </span>
               </div>
             </main>
           </div>
@@ -1185,10 +1525,34 @@ function App() {
             </button>
             <div className="eyebrow">SAMPLE SOURCE · {source.category}</div>
             <h2 id="source-title">{source.title}</h2>
-            <p className="body-copy">{source.text}</p>
+            <p
+              className="body-copy"
+              style={{
+                whiteSpace: "pre-wrap",
+                maxHeight: "45vh",
+                overflow: "auto",
+              }}
+            >
+              {source.text ||
+                "The original source is not available in this browser. Reattach the file to review it."}
+            </p>
+            {source.origin === "upload" &&
+              uploads.some((record) => record.id === source.id) && (
+                <button
+                  className="btn secondary"
+                  onClick={() =>
+                    downloadOriginal(
+                      uploads.find((record) => record.id === source.id)!,
+                    )
+                  }
+                >
+                  Download original file
+                </button>
+              )}
             <div className="demo-note">
-              Fictional document supplied with this prototype. No external
-              system is connected.
+              {source.origin === "upload"
+                ? "This content was imported from your file and saved in this browser."
+                : "Fictional document supplied with this prototype. No external system is connected."}
             </div>
             <button className="btn" onClick={() => setSource(null)}>
               Done reading <Check size={16} />
@@ -1213,7 +1577,12 @@ function App() {
             </button>
             <div className="eyebrow">MAKE THE NEXT STEP A GOOD ONE</div>
             <h2 id="create-title">Create a handoff</h2>
-            <p>Use fictional details only. You can organize knowledge next.</p>
+            <p>
+              {workspaceKind === "demo"
+                ? "Use fictional details only."
+                : "Use only information you are authorized to process."}{" "}
+              You can organize knowledge next.
+            </p>
             {notice && (
               <p role="alert" className="notice">
                 {notice}

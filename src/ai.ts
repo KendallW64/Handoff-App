@@ -1,9 +1,9 @@
 import { resources, type Handoff, type Resource, type AiManual } from "./data";
 export type { AiManual } from "./data";
-export const apiUrl = (import.meta.env.VITE_AI_API_URL || "https://handoff-app.ansfwatson4.workers.dev").replace(
-  /\/$/,
-  "",
-);
+export const apiUrl = (
+  import.meta.env.VITE_AI_API_URL ||
+  "https://handoff-app.ansfwatson4.workers.dev"
+).replace(/\/$/, "");
 export function isAiManual(value: unknown): value is AiManual {
   const v = value as AiManual;
   return (
@@ -29,9 +29,11 @@ export function isAiManual(value: unknown): value is AiManual {
   );
 }
 export async function requestAi(
-  mode: "manual" | "answer",
+  mode: "manual" | "answer" | "summary",
   handoff: Handoff,
   question?: string,
+  library: Resource[] = resources,
+  contentConsent = false,
 ) {
   if (!apiUrl)
     throw new Error(
@@ -43,6 +45,30 @@ export async function requestAi(
     !["localhost", "127.0.0.1"].includes(endpoint.hostname)
   )
     throw new Error("The backend must use HTTPS.");
+  const selected = library.filter((r) => handoff.selected.includes(r.id));
+  const uploads = selected.filter((r) => r.origin === "upload");
+  if (selected.length !== handoff.selected.length)
+    throw new Error(
+      "Some selected files are still loading or missing. Reattach them or select other sources.",
+    );
+  if (uploads.length && !contentConsent)
+    throw new Error(
+      "Confirm permission to send these files to Google before using Gemini.",
+    );
+  if (uploads.reduce((n, r) => n + r.text.length, 0) > 120000)
+    throw new Error(
+      "Select fewer files: the selected text exceeds 120,000 characters.",
+    );
+  if (
+    uploads.reduce(
+      (n, r) => n + ((r.inlineData?.data.length || 0) * 3) / 4,
+      0,
+    ) >
+    3 * 1024 * 1024
+  )
+    throw new Error(
+      "Select fewer PDF/image attachments: the combined limit is 3 MB.",
+    );
   let response: Response;
   try {
     response = await fetch(`${apiUrl}/api/generate`, {
@@ -62,7 +88,9 @@ export async function requestAi(
         },
         sourceIds: handoff.selected,
         question,
-        fictionalDataOnly: true,
+        fictionalDataOnly: !uploads.length,
+        contentConsent,
+        uploadedDocuments: uploads,
       }),
     });
   } catch {
@@ -78,7 +106,7 @@ export async function requestAi(
   const handoffSource: Resource = {
     id: "handoff",
     title: "Handoff details",
-    category: "Fictional user-entered details",
+    category: "User-entered handoff details",
     text: JSON.stringify(
       {
         name: handoff.name,
@@ -94,7 +122,7 @@ export async function requestAi(
     ),
   };
   const allowed = [
-    ...resources.filter((r) => handoff.selected.includes(r.id)),
+    ...library.filter((r) => handoff.selected.includes(r.id)),
     handoffSource,
   ];
   function citations(ids: unknown): Resource[] {
@@ -105,7 +133,7 @@ export async function requestAi(
       throw new Error("The AI response included an invalid source reference.");
     return allowed.filter((r) => ids.includes(r.id));
   }
-  if (mode === "answer") {
+  if (mode !== "manual") {
     if (typeof result.text !== "string")
       throw new Error("The AI response was incomplete.");
     return {

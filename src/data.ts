@@ -3,6 +3,8 @@ export type Resource = {
   title: string;
   category: string;
   text: string;
+  origin?: "upload";
+  inlineData?: { mimeType: string; data: string };
 };
 export type AiManual = {
   model: string;
@@ -21,6 +23,7 @@ export type Handoff = {
   generated: boolean;
   approved: boolean;
   aiManual?: AiManual;
+  summary?: { text: string; model: string; sources: Resource[] };
 };
 export const resources: Resource[] = [
   {
@@ -93,8 +96,8 @@ export const initialHandoffs: Handoff[] = [
 ];
 export const status = (h: Handoff) =>
   h.approved ? "Completed" : h.generated ? "Pending review" : "In progress";
-export function manual(h: Handoff) {
-  const docs = resources.filter((r) => h.selected.includes(r.id));
+export function manual(h: Handoff, library: Resource[] = resources) {
+  const docs = library.filter((r) => h.selected.includes(r.id));
   return [
     {
       title: "Who · Your people",
@@ -143,6 +146,7 @@ export function manual(h: Handoff) {
 export function answer(
   question: string,
   h: Handoff,
+  library: Resource[] = resources,
 ): { text: string; sources: Resource[] } {
   const terms =
     question
@@ -165,7 +169,7 @@ export function answer(
             "which",
           ].includes(w),
       ) ?? [];
-  const matches = resources
+  const matches = library
     .filter((r) => h.selected.includes(r.id))
     .map((r) => ({
       r,

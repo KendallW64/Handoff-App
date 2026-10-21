@@ -1,12 +1,16 @@
-# Connect Gemini safely — fictional demo only
+# Configure the Gemini backend
+
+## Current status
+
+The owner confirmed real sample-document manuals and questions on October 18. The October 21 update adds selected business-file processing; see [File workspace](FILE-WORKSPACE.md) for supported formats, actual data flow and limits. File-processing provider interpretation still needs live validation. The original setup walkthrough below uses fictional data for a safe first test.
 
 ## What has been built
 
-The frontend can request six-section manuals and source-referenced answers from a Cloudflare Worker. The Worker holds the Gemini key, sends only selected built-in sample documents, validates references, and uses an atomic D1 counter to permit at most **10 model requests per UTC day across the entire demo**. Failed provider attempts count too. There are no automatic model retries. The key is sent to Google's HTTPS API in a server-side header, never returned to the frontend.
+The frontend can request document summaries, six-section manuals and source-referenced answers from a Cloudflare Worker. The Worker holds the Gemini key, sends only the selected sources, including explicitly authorized browser-local file content, validates references, and uses an atomic D1 counter to permit at most **10 model requests per UTC day across the entire demo**. Failed provider attempts count too. There are no automatic model retries. The key is sent to Google's HTTPS API in a server-side header, never returned to the frontend.
 
-This is a public, fictional-data demonstration, **not** production company authentication, tenant isolation, or authorization. Origin checks prevent ordinary cross-origin browser calls but are not authentication: non-browser callers can forge Origin and consume the shared allowance. The fixed public source library contains no private documents. Do not use this backend for real employee information. The separate enterprise architecture proposal still applies before production.
+This is a public demo and individual browser-file tool, **not** production company authentication, tenant isolation, or authorization. Origin checks prevent ordinary cross-origin browser calls but are not authentication: non-browser callers can forge Origin and consume the shared allowance. The fixed sample library contains no private documents. Uploaded originals/text are request-scoped and not stored by this backend. Only process data you are authorized to send to Google under the applicable API data terms. The separate enterprise architecture proposal still applies before production.
 
-No Cloudflare deployment or successful real Gemini request has been performed yet. The tests use a fake provider; they are evidence for the connection code, not model availability, free-tier eligibility, output quality, or your key.
+The owner confirmed the existing deployed sample-document connection. Automated provider tests remain mocked; they do not establish file interpretation quality, current model eligibility, or live upload readiness.
 
 ## Accounts and cost protection
 
@@ -59,7 +63,7 @@ You, as the account owner, run these commands on your own computer. Never send t
 1. In the GitHub repository, open **Settings → Secrets and variables → Actions → Variables**.
 2. Add a **repository variable** named `AI_API_URL`. Its value is your public Worker URL, for example `https://handoff-ai.YOUR-SUBDOMAIN.workers.dev` (no trailing slash or `/api`). This value is intentionally public; it contains no key.
 3. Run the **Build, test, and deploy GitHub Pages** workflow on `main`. The workflow passes that URL as `VITE_AI_API_URL` at build time. Keep Pages Source set to GitHub Actions.
-4. Open the deployed website in a private window. It must still show the public landing page. Enter BridgePoint intentionally, open a handoff's Knowledge tab, and enable **Use Gemini AI · fictional data only**. It is off by default on every page load.
+4. Open the deployed website in a private window. It must still show the public landing page. Enter BridgePoint intentionally, open a handoff's Knowledge tab, and enable **Use Gemini AI · selected sources**. The sample demo starts with AI off; the file workspace starts with its AI controls enabled, but requires processing permission before sending selected files.
 
 ## Verify an actual connection
 

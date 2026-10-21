@@ -17,11 +17,11 @@ export function AiControls({
           disabled={!apiUrl || busy}
           onChange={(e) => onChange(e.target.checked)}
         />{" "}
-        Use Gemini AI · fictional data only
+        Use Gemini AI · selected sources
       </label>
       <p>
         {enabled
-          ? "Selected sample documents, your question, and fictional handoff details will be sent to Google through the backend. Responses can be wrong; verify their sources."
+          ? "Selected document contents, your question, and handoff details will be sent to Google through the backend. PDF/image originals are sent for document reading; other formats send extracted text. Check your Google API data terms, use only authorized information, and verify all AI output."
           : apiUrl
             ? "Sample mode is active. Enable Gemini to request real model responses."
             : "Gemini is not connected yet. The owner must deploy the backend and configure its public URL. Sample mode is active."}
