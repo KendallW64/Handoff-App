@@ -1280,7 +1280,7 @@ function App() {
                         <h3>Get the useful details, faster</h3>
                         <p>
                           Generate a source-referenced summary of only the
-                          selected files. Up to 120,000 extracted characters and
+                          selected files. Summaries, manuals and questions support up to 8 uploaded files (12 total sources); folder plans support 20. Up to 120,000 extracted characters and
                           3 MB of image/scanned PDF attachments per request.
                         </p>
                         <button

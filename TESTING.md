@@ -84,3 +84,6 @@ The existing mocked Gemini UI regression suite also passed **3/3**, none skipped
 Organization checks: `npm run test:backend` includes safe paths, unique destinations, extension preservation, 20-file AI plans and consent tests. `npm run test:pages` includes a real ZIP download/unpack/hash comparison and mocked Gemini folder suggestions. No actual model calls are made in these suites. The summary endpoint now accepts summary requests without an unrelated question field, matching the UI.
 
 Deletion tests exercise cancellation, confirmed removal from both detail and list, removal of only the target's IndexedDB files, preservation of other files, persistence across reload, and an empty workspace after deleting its last handoff.
+
+
+Gemini reliability checks cover count preflight without a backend call, safe provider status mapping, network/timeout distinction, deadlines during streaming response-body reads, no retries and unchanged quota reservation. Text tests cover BOM-marked UTF-16 LE/BE CSV imports and rejection of malformed/ambiguous encodings. All provider calls in these tests are mocked.

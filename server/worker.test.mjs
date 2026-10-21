@@ -415,3 +415,26 @@ test('summary does not require an unrelated question',async()=>{
  const worker=createWorker(provider({text:'Migration runbook summary.',sourceIds:['migration'],insufficientEvidence:false}));
  assert.equal((await worker.fetch(request({...body,mode:'summary',question:undefined}),environment())).status,200);
 });
+
+test('provider failures have distinct safe diagnostics with one counted attempt and no retries',async()=>{
+ const cases=[[400,/input or model/],[401,/authentication/],[403,/denied access/],[404,/model or endpoint was not found/],[413,/request size/],[429,/quota or rate/],[503,/temporarily unavailable/]];
+ for(const [status,message] of cases){let calls=0,reservations=0;const env=environment();env.DB={prepare:()=>({bind(){return this},async first(){reservations++;return {used:1}}})};
+ const r=await createWorker(async()=>{calls++;return new Response('secret provider body',{status});}).fetch(request(),env);
+ assert.equal(r.status,status===429?429:502);const json=await r.json();assert.match(json.error,message);assert.ok(!json.error.includes('secret'));assert.equal(calls,1);assert.equal(reservations,1);
+ }
+ for(const [error,status,pattern] of [[new TypeError('private network details'),502,/connection to Gemini failed/],[new DOMException('private timeout','TimeoutError'),504,/deadline/]]){
+ const r=await createWorker(async()=>{throw error}).fetch(request(),environment());assert.equal(r.status,status);assert.match((await r.json()).error,pattern);
+ }
+});
+test('provider deadline covers response-body reading and permits responses beyond old deadline',async()=>{
+ // Small injected deadlines test actual abort behavior without waiting a full minute.
+ const delayed=(delay)=>async(_url,options)=>{
+  const stream=new ReadableStream({start(controller){
+   const timer=setTimeout(()=>{controller.enqueue(new TextEncoder().encode(JSON.stringify({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({text:'Supported answer.',sourceIds:['migration'],insufficientEvidence:false})}]}}]})));controller.close();},delay);
+   options.signal.addEventListener('abort',()=>{clearTimeout(timer);controller.error(options.signal.reason)},{once:true});
+  }});return new Response(stream,{headers:{'Content-Type':'application/json'}});
+ };
+ const r=await createWorker(delayed(30),5).fetch(request(),environment());assert.equal(r.status,504);assert.match((await r.json()).error,/deadline/);
+ const ok=await createWorker(delayed(5),100).fetch(request(),environment());assert.equal(ok.status,200);
+ const broken=await createWorker(async()=>new Response(new ReadableStream({start(c){c.error(new TypeError('private body failure'))}}))).fetch(request(),environment());assert.equal(broken.status,502);assert.match((await broken.json()).error,/connection to Gemini failed/);
+});

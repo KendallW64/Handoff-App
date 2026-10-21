@@ -1,3 +1,4 @@
+import { decodeBusinessText } from "./text-decoding";
 import { unzipSync } from "fflate";
 import PostalMime from "postal-mime";
 import { decode } from "html-entities";
@@ -187,13 +188,7 @@ self.onmessage = async (event: MessageEvent<File>) => {
       ].includes(extension)
     ) {
       if (extension !== "eml") {
-        try {
-          text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-        } catch {
-          throw Error(
-            "This text file is not UTF-8. Save it with UTF-8 encoding and try again.",
-          );
-        }
+        text = decodeBusinessText(bytes);
         if (/\x00/.test(text))
           throw Error(
             "This looks like a binary file. Export a supported text or Office file.",

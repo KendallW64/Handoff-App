@@ -80,7 +80,7 @@ You, as the account owner, run these commands on your own computer. Never send t
 - In browser Network, confirm the POST goes to your Worker and returns `provider: "gemini"`, the configured model, and usable output. Requests/responses must not contain the key. A provider call returning validated output is the first actual connection evidence; record the time/model without screenshots of secrets or private content.
 - Refresh and re-enter: generated manual content and provenance should persist locally. Changing selected sources must invalidate that manual and approval.
 
-If you receive an error, do not repeatedly retry: failures consume the daily limit. Check the key's API restrictions, model ID and free-tier availability, database binding/migrations, exact frontend Origin, and `ENABLE_GEMINI`. The backend intentionally returns generic errors rather than echoing Google responses that could contain sensitive details. There is no document/prompt logging in this Worker. Usage counters store only a date and request count.
+If you receive an error, do not repeatedly retry: failures consume the daily limit. Check the key's API restrictions, model ID and free-tier availability, database binding/migrations, exact frontend Origin, and `ENABLE_GEMINI`. The backend returns safe messages distinguishing network, timeout, input, authentication/access, missing model, quota/rate and provider availability failures; it never echoes Google response bodies that could contain sensitive details. Requests have a 60-second backend deadline and 75-second browser deadline, including body reads. There is no document/prompt logging in this Worker. Usage counters store only a date and request count.
 
 ## Local development and automated checks
 

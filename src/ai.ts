@@ -52,6 +52,13 @@ export async function requestAi(
     throw new Error(
       "Some selected files are still loading or missing. Reattach them or select other sources.",
     );
+  const sourceLimit = mode === "organize" ? 20 : 12;
+  const uploadLimit = mode === "organize" ? 20 : 8;
+  if (!selected.length) throw new Error("Select at least one source before requesting AI.");
+  if (uploads.length > uploadLimit || selected.length > sourceLimit)
+    throw new Error(`This operation supports up to ${uploadLimit} uploaded files and ${sourceLimit} total sources. Select fewer files; no AI request has been sent. Folder organization supports up to 20 uploaded files.`);
+  if (mode === "organize" && selected.length !== uploads.length)
+    throw new Error("Folder organization requires uploaded files, not sample sources.");
   if (uploads.length && !contentConsent)
     throw new Error(
       "Confirm permission to send these files to Google before using Gemini.",
@@ -71,11 +78,13 @@ export async function requestAi(
       "Select fewer PDF/image attachments: the combined limit is 3 MB.",
     );
   let response: Response;
+  let result;
+  const signal = AbortSignal.timeout(75000);
   try {
     response = await fetch(`${apiUrl}/api/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      signal: AbortSignal.timeout(35000),
+      signal,
       body: JSON.stringify({
         mode,
         handoff: {
@@ -94,14 +103,17 @@ export async function requestAi(
         uploadedDocuments: uploads,
       }),
     });
-  } catch {
-    throw new Error(
-      "The Gemini backend could not be reached. Check its address, availability, and allowed origin. No sample answer was substituted.",
-    );
+    // Keep the deadline active while reading the response, not just its headers.
+    try { result = await response.json(); }
+    catch (error) { if (error instanceof SyntaxError) result = null; else throw error; }
+  } catch (error) {
+    const name = error instanceof Error ? error.name : "";
+    throw new Error(signal.aborted || name === "TimeoutError" || name === "AbortError"
+      ? "The AI request exceeded the 75-second browser deadline. No automatic retry was made; check your selection and try again later."
+      : "The AI backend connection failed. Check your internet connection and backend availability. No automatic retry or sample answer was substituted.");
   }
-  const result = await response.json().catch(() => null);
   if (!response.ok)
-    throw new Error(result?.error || "The AI backend returned an error.");
+    throw new Error(typeof result?.error === "string" ? result.error : "The AI backend returned an error. Please try again later.");
   if (result?.provider !== "gemini" || typeof result.model !== "string")
     throw new Error("The AI backend returned an invalid response.");
   if (mode === "organize") return { entries:validateOrganization(result.entries, uploads), model:result.model };

@@ -6,7 +6,7 @@ export function selectedDocuments(body: Record<string, any>): Resource[] {
     body.sourceIds.length > (body.mode === "organize" ? 20 : 12) ||
     new Set(body.sourceIds).size !== body.sourceIds.length
   )
-    throw Error("Select between 1 and 12 distinct sources.");
+    throw Error(body.mode === "organize" ? "Select between 1 and 20 distinct uploaded files for organization." : "Select between 1 and 12 distinct sources.");
   const uploads = body.uploadedDocuments ?? [];
   if (!Array.isArray(uploads) || uploads.length > (body.mode === "organize" ? 20 : 8))
     throw Error("Select no more than 8 uploaded files, or 20 for organization.");

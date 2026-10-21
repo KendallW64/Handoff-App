@@ -1,6 +1,6 @@
 # Gemini and file diagnostic review
 
-Reviewed October 21, 2026. Investigation only: Gemini behavior and importer behavior have not been changed pending user approval.
+Reviewed October 21, 2026. The user approved the proposed fixes. The original findings below document behavior before the fixes; implementation status is recorded at the end.
 
 Confirmed with synthetic requests to the Worker (mock provider, no real model calls):
 - Nine uploaded files in a summary request fail before any provider request. The importer/organizer supports 20 files, but summary/manual/answer permits eight uploaded files. Select all can exceed that limit; frontend preflight does not check the count.
@@ -16,3 +16,14 @@ Code findings:
 Suggested changes for approval: frontend preflight that explains operation-specific limits; safe, distinct timeout/network/quota/model/permission/provider errors without exposing provider bodies or credentials; a longer bounded request deadline with matching browser deadline and full response-body handling; explicitly detected UTF-16 text/CSV decoding, retaining errors for ambiguous encodings. Preserve existing quota, size limits, no automatic retries, and no billing changes. These changes improve diagnosis and supported inputs but cannot guarantee real model availability or eliminate free-tier quota limits.
 
 The execution network returned a proxy CONNECT 403 for the live Worker health URL. That is a restriction on this diagnostic environment, not evidence that the deployed Worker itself rejected the user's request. No real documents or secrets were sent during this investigation.
+
+
+## Approved fixes implemented
+
+- Frontend operation-specific count validation prevents invalid selections from using a request.
+- Provider deadlines increased from 25 to 60 seconds; browser deadline from 35 to 75 seconds. Body reads remain covered by the same deadline.
+- Safe status-specific and network-versus-timeout diagnostics replace misleading generic failures, without exposing upstream bodies.
+- BOM-marked UTF-16 LE/BE text/CSV decoding is supported with strict validation; other ambiguous encodings remain rejected.
+- Existing model, billing settings, quota, file sizes and no-retry behavior are unchanged.
+
+Automated tests use synthetic files and mocked provider calls, including a delayed streaming response body and distinct network/timeout errors. These tests do not establish that the configured model is available in the owner's Google project or that the user's original error is resolved in production. A live, authorized synthetic-file check remains necessary after Pages and Worker deployments.
