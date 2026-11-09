@@ -98,7 +98,7 @@ export async function requestAi(
         },
         sourceIds: handoff.selected,
         question,
-        fictionalDataOnly: !uploads.length,
+        publicDemoDataOnly: !uploads.length,
         contentConsent,
         uploadedDocuments: uploads,
       }),

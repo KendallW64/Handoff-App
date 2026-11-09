@@ -2,11 +2,11 @@
 
 **Knowledge stays. Teams move forward.**
 
-A functional, browser-based employee knowledge transfer prototype. Handoff is the software provider; BridgePoint is a fictional Atlanta IT consulting customer. Every built-in BridgePoint person, document, client, and project is fictional. The separate file workspace accepts your own authorized files.
+A functional, browser-based employee knowledge transfer prototype. Handoff is the software provider. The independent demo uses verified quotations from GitLab’s public handbook. Demo records are reading topics, not employee handoffs; no GitLab affiliation or endorsement is claimed. The separate file workspace accepts your own authorized files.
 
 ## Use your own files
 
-Choose **Use my own files** on the public website. Import supported business files, select them, confirm permission to send them to Gemini, and choose **Generate document summary**. You can also generate a six-part manual and ask questions with source references. Files persist per handoff in this browser; the BridgePoint demo remains separate.
+Choose **Use my own files** on the public website. Import supported business files, select them, confirm permission to send them to Gemini, and choose **Generate document summary**. You can also generate a six-part manual and ask questions with source references. Files persist per handoff in this browser; the GitLab public-handbook demo demo remains separate.
 
 [File workspace guide](docs/FILE-WORKSPACE.md) lists exact formats, extraction limitations, size limits, privacy, and deployment steps. This is a working individual file workflow, not production company authentication or shared cloud storage. New-format model interpretation still requires a live check after deployment.
 
@@ -29,8 +29,8 @@ npm run preview  # Locally serve that production bundle
 ## Five screens and a demonstration walkthrough
 
 1. **Public website:** Handoff's value proposition and an Explore the demo button. Nobody starts signed in.
-2. **Demo sign-in:** explicitly enter BridgePoint; no passwords or personal information are requested.
-3. **Dashboard:** active, review, and completed totals; search and filter handoffs. Choose New handoff and enter fictional details.
+2. **Demo sign-in:** explicitly enter GitLab public-handbook demo; no passwords or personal information are requested.
+3. **Dashboard:** active, review, and completed totals; search and filter handoffs. Choose New handoff and enter only authorized details.
 4. **Handoff workspace:** Overview records responsibilities and recipient. Knowledge lets you read and select sample documents. Generate a manual covering Who, What, When, Where, Why, and How. References open their original sample documents. Review and approve the manual; its dashboard status becomes Completed. Changing sources invalidates the generated manual and approval. Print / Save PDF uses your browser's print dialog.
 5. **Ask Handoff:** choose a handoff, ask about its selected resources, and open the referenced sources. Unsupported questions produce an explicit no-evidence response.
 
@@ -42,9 +42,9 @@ A server-side Gemini adapter and frontend controls are now implemented. Follow [
 
 ## Implemented versus simulated
 
-**Implemented:** responsive navigation, labeled forms with required fields, whitespace validation, fictional handoff creation, local persistence, dashboard filtering, source selection and reading, browser-local file import and extraction, document summaries, manual assembly, approval, source-change invalidation, question matching with source references, and print styling. Dialogs support Escape, trapped keyboard focus, and focus restoration.
+**Implemented:** responsive navigation, labeled forms with required fields, whitespace validation, user-entered handoff creation, local persistence, dashboard filtering, source selection and reading, browser-local file import and extraction, document summaries, manual assembly, approval, source-change invalidation, question matching with source references, and print styling. Dialogs support Escape, trapped keyboard focus, and focus restoration.
 
-**Simulated in the demo:** authentication (no identity verification or security boundary), enterprise integrations (a built-in sample library only), and AI (deterministic local templates and keyword retrieval, not an LLM). Questions return matching source passages rather than independent generated claims. The fictional library is available in the demo; the separate personal file workspace uses only its own uploaded files. Only selected sources are sent to the model. There is now browser-local file importing and request-scoped processing through Gemini; there is no shared cloud file service or connection to company systems. Optional Gemini mode can use real model responses after backend configuration; it never silently substitutes sample responses for provider failures.
+**Simulated in the demo:** authentication (no identity verification or security boundary), enterprise integrations (a built-in sample library only), and AI (deterministic local templates and keyword retrieval, not an LLM). Questions return matching source passages rather than independent generated claims. The public-excerpt library is available in the demo; the separate personal file workspace uses only its own uploaded files. Only selected sources are sent to the model. There is now browser-local file importing and request-scoped processing through Gemini; there is no shared cloud file service or connection to company systems. Optional Gemini mode can use real model responses after backend configuration; it never silently substitutes sample responses for provider failures.
 
 Manual sections identify whether their source is user-entered demo handoff details or selected sample documents. The Why and How sections preserve source passages to keep the demonstration verifiable; they are starting points for human review, not expert recommendations.
 
@@ -53,7 +53,7 @@ Browser localStorage stores handoff records and derived outputs; IndexedDB store
 ## Code map and decisions
 
 - `src/main.tsx`: screen navigation, forms, workflow interactions, and application state.
-- `src/data.ts`: typed domain records, fictional source library, manual assembly, and source-scoped answer retrieval. These functions can later be replaced by backend APIs.
+- `src/data.ts`: typed domain records, verified public handbook excerpts, manual assembly, and source-scoped answer retrieval. These functions can later be replaced by backend APIs.
 - `src/style.css`: responsive design and print styles.
 - `src/documents.ts`, `src/extract.worker.ts`, `src/UploadPanel.tsx`: per-handoff IndexedDB files, bounded extraction workers, imports/download/removal.
 - `server/documents.ts`: selected-source, consent, size and attachment validation before Gemini.
@@ -106,10 +106,10 @@ Alternatively upload the contents of `dist/` to a static host that supports HTTP
 
 ## Assignment screenshots
 
-Use fictional sample records. Capture these five views at approximately 1440 × 1000 pixels:
+Use the public-handbook topic records. Capture these five views at approximately 1440 × 1000 pixels:
 
 1. Public landing page with Handoff branding and tagline.
-2. BridgePoint dashboard with handoff statuses.
+2. GitLab public-handbook demo dashboard with handoff statuses.
 3. Handoff Knowledge tab with selected sources.
 4. Generated six-part manual with source links and approval.
 5. Ask Handoff answer with supporting document references.
@@ -135,3 +135,10 @@ Add real tenant isolation, authenticated sessions, role-based authorization, ser
 [Microsoft integration proposal](docs/MICROSOFT-AI-PLAN.md) compares Foundry and Copilot Studio, required accounts, costs, Entra sign-in, server-side identities, tenant/document isolation, and acceptance gates. No real Microsoft integration is configured or claimed.
 
 [Requirements review](docs/REQUIREMENTS-REVIEW.md) records implemented, simulated, and outstanding features against the original brief.
+
+
+## Real-company demo provenance
+
+The demo company is GitLab. Built-in source text consists only of quotations verified against four official public handbook files at a pinned repository revision. Initial records have no invented employee names or transition dates; all approval and generation flags start false. Dashboard counts describe browser-local demo actions, not company statistics.
+
+See [the complete source and numbers verification report](docs/demo-sources/VERIFICATION.md) and [machine-readable manifest](docs/demo-sources/manifest.json). Snapshots and their upstream license are included for reproducibility. Node tests check every quotation and SHA-256 hash. The original BridgePoint demo uses a different storage key; existing personal-file records are unchanged.

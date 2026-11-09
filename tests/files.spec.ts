@@ -39,7 +39,7 @@ test("real files summarize, cite originals, persist, answer and invalidate when 
     const body = route.request().postDataJSON();
     calls++;
     expect(body.contentConsent).toBe(true);
-    expect(body.fictionalDataOnly).toBe(false);
+    expect(body.publicDemoDataOnly).toBe(false);
     expect(body.uploadedDocuments).toHaveLength(1);
     expect(body.uploadedDocuments[0].text).toContain(
       "Orion renewal is due Friday",
@@ -68,7 +68,7 @@ test("real files summarize, cite originals, persist, answer and invalidate when 
     });
   });
   await enterFiles(page);
-  await expect(page.getByText("BridgePoint", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("GitLab", { exact: true })).toHaveCount(0);
   await page
     .getByLabel("Upload files")
     .setInputFiles([
@@ -272,14 +272,14 @@ test("unreadable and unsupported files are rejected without silent truncation or
   await page.getByRole("button", { name: "Explore the demo" }).click();
   await page.getByRole("button", { name: "Enter demo workspace" }).click();
   await page
-    .getByRole("button", { name: "Alex Morgan Senior Cloud Consultant" })
+    .getByRole("button", { name: "Handbook-first working Public handbook topic" })
     .click();
   await page.getByRole("tab", { name: "Knowledge", exact: true }).click();
   await expect(
     page.getByRole("checkbox", { name: "Include personal.txt" }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("checkbox", { name: "Include Atlas migration runbook" }),
+    page.getByRole("checkbox", { name: "Include Handbook-first communication" }),
   ).toBeVisible();
 });
 

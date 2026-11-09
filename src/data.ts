@@ -27,76 +27,93 @@ export type Handoff = {
 };
 export const resources: Resource[] = [
   {
-    id: "migration",
-    title: "Atlas migration runbook",
-    category: "Process",
-    text: "For the fictional Atlas cloud migration, Maya Chen is the project sponsor and Jordan Ellis is the technical lead. Every Tuesday at 10 AM Eastern, review the migration checklist with the delivery team. Find the checklist in the sample Atlas project folder. Before each migration, validate the backup, run a staging rehearsal, and obtain sponsor approval. This prevents data loss and unexpected downtime.",
+    "id": "handbook",
+    "title": "Handbook-first communication",
+    "category": "Documentation",
+    "text": "GitLab is intentional about documenting in a manner that creates a single source of truth.\n\nAt GitLab, we write things down *first*, and communicate that (E.g. Document the solution first, *then* announce via Slack or email.)."
   },
   {
-    id: "client",
-    title: "Client relationship notes",
-    category: "Contacts",
-    text: "For the fictional Atlas project, Maya Chen is the primary client contact. Route scope changes through the project sponsor before promising dates. Client updates occur every Thursday at 2 PM Eastern. Store approved meeting summaries in the sample Atlas project folder. Written approvals preserve the reasons behind scope and schedule decisions.",
+    "id": "communication",
+    "title": "GitLab communication",
+    "category": "Communication",
+    "text": "To accomplish this, we use asynchronous communication as a starting point and stay as open and transparent as we can by communicating through public issues, merge requests, and Slack channels.\n\nWe also place an emphasis on ensuring that conclusions of offline conversations are written down.\n\nWe communicate respectfully and professionally at all times."
   },
   {
-    id: "operations",
-    title: "Cloud operations checklist",
-    category: "Responsibilities",
-    text: "The fictional operations team reviews alerts at 9 AM Eastern each workday. Jordan Ellis owns incident triage. Find incident records in the sample operations knowledge folder. Acknowledge an alert, assess impact, record findings, and escalate to the technical lead before changing production. This keeps incident decisions traceable.",
+    "id": "onboarding",
+    "title": "Remote onboarding",
+    "category": "Onboarding",
+    "text": "GitLab believes the onboarding process is incredibly important. We don't expect anyone to hit the ground running from day one.\n\nWe anticipate the remote onboarding process to take at least two full weeks, with the third week designated for team-specific onboarding and training. We encourage new team members to participate in their teams' work in the first two weeks, but without pressure to contribute heavily."
   },
   {
-    id: "decisions",
-    title: "Architecture decision log",
-    category: "Project history",
-    text: "The fictional Atlas team chose phased migration so each service could be validated independently. Jordan Ellis maintains the decision log in the sample architecture folder. Review the log before proposing infrastructure changes. Record the problem, alternatives, decision, and rationale; request technical lead review before implementation.",
-  },
+    "id": "meetings",
+    "title": "Meeting agendas",
+    "category": "Meetings",
+    "text": "Every work-related meeting should have a single live doc agenda affixed to the calendar invite at the time that the invite is added to calendars.\n\n[Meeting DRIs](/handbook/people-group/directly-responsible-individuals/) should prep the agenda at least 72 hours before the meeting."
+  }
 ];
 export const initialHandoffs: Handoff[] = [
   {
-    id: "h1",
-    name: "Alex Morgan",
-    role: "Senior Cloud Consultant",
-    department: "Cloud Services",
-    type: "Internal transfer",
-    recipient: "Sam Rivera",
-    responsibilities:
-      "Lead the Atlas migration, maintain client communication, and coordinate cloud operations.",
-    due: "2026-11-06",
-    selected: ["migration", "client", "decisions"],
-    generated: false,
-    approved: false,
+    "id": "gitlab-handbook",
+    "name": "Handbook-first working",
+    "role": "Public handbook topic",
+    "department": "GitLab public handbook",
+    "type": "Public-document review",
+    "recipient": "Demo reader",
+    "responsibilities": "Review the selected GitLab public handbook excerpts. No employee handoff, assigned owner or transition date is documented in this demo.",
+    "due": "Not specified",
+    "selected": [
+      "handbook",
+      "communication"
+    ],
+    "generated": false,
+    "approved": false
   },
   {
-    id: "h2",
-    name: "Taylor Brooks",
-    role: "IT Operations Lead",
-    department: "IT Operations",
-    type: "Departure",
-    recipient: "Jamie Parker",
-    responsibilities: "Manage daily incident triage and cloud operations.",
-    due: "2026-11-13",
-    selected: ["operations"],
-    generated: true,
-    approved: false,
+    "id": "gitlab-onboarding",
+    "name": "Remote onboarding review",
+    "role": "Public handbook topic",
+    "department": "GitLab public handbook",
+    "type": "Public-document review",
+    "recipient": "Demo reader",
+    "responsibilities": "Review the selected GitLab public handbook excerpts. No employee handoff, assigned owner or transition date is documented in this demo.",
+    "due": "Not specified",
+    "selected": [
+      "onboarding"
+    ],
+    "generated": false,
+    "approved": false
   },
   {
-    id: "h3",
-    name: "Casey Reed",
-    role: "Solutions Architect",
-    department: "Architecture",
-    type: "Project transfer",
-    recipient: "Drew Bennett",
-    responsibilities:
-      "Maintain architecture decisions and review infrastructure changes.",
-    due: "2026-10-30",
-    selected: ["decisions"],
-    generated: true,
-    approved: true,
-  },
+    "id": "gitlab-meetings",
+    "name": "Meeting practices review",
+    "role": "Public handbook topic",
+    "department": "GitLab public handbook",
+    "type": "Public-document review",
+    "recipient": "Demo reader",
+    "responsibilities": "Review the selected GitLab public handbook excerpts. No employee handoff, assigned owner or transition date is documented in this demo.",
+    "due": "Not specified",
+    "selected": [
+      "meetings"
+    ],
+    "generated": false,
+    "approved": false
+  }
 ];
 export const status = (h: Handoff) =>
   h.approved ? "Completed" : h.generated ? "Pending review" : "In progress";
 export function manual(h: Handoff, library: Resource[] = resources) {
+  if(h.type === "Public-document review") {
+    const docs=library.filter(r=>h.selected.includes(r.id));
+    const timing=docs.filter(r=>r.id === "onboarding" || r.id === "meetings");
+    return [
+      {title:"Who · Your people",body:"These are GitLab public handbook excerpts. No specific employee, receiving teammate or actual personnel transition is identified. Demo reader is an interface label, not a GitLab employee.",sources:[] as Resource[]},
+      {title:"What · Your responsibilities",body:docs.length ? docs.map(r=>r.text).join("\n\n") : "No sources selected.",sources:docs},
+      {title:"When · Your rhythm",body:timing.length ? timing.map(r=>r.text).join("\n\n") : "No schedule or transition date is specified in the selected excerpts.",sources:timing},
+      {title:"Where · Your knowledge",body:docs.map(r=>r.title+" — public handbook excerpt available below.").join("\n"),sources:docs},
+      {title:"Why · The context",body:docs.map(r=>r.text).join("\n\n"),sources:docs},
+      {title:"How · Getting started",body:"Read the selected public handbook excerpts below. This local reading guide does not establish an employee assignment or a GitLab-approved training manual.",sources:docs},
+    ];
+  }
   const docs = library.filter((r) => h.selected.includes(r.id));
   return [
     {
@@ -124,7 +141,7 @@ export function manual(h: Handoff, library: Resource[] = resources) {
       body: docs
         .map(
           (r) =>
-            `${r.title}: ${r.category}. Open the source below to read the sample information and its folder reference.`,
+            `${r.title}: ${r.category}. Open the source below to read the selected information.`,
         )
         .join("\n"),
       sources: docs,
@@ -184,7 +201,7 @@ export function answer(
   return matches.length
     ? { text: matches.map((r) => r.text).join("\n\n"), sources: matches }
     : {
-        text: "I could not find supporting information in this handoff’s selected sample sources. Try asking about a selected document, or add the relevant source in the Knowledge tab. I won’t guess an answer.",
+        text: "I could not find supporting information in this handoff’s selected sources. Try asking about a selected document, or add the relevant source in the Knowledge tab. I won’t guess an answer.",
         sources: [],
       };
 }

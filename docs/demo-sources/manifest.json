@@ -1,0 +1,64 @@
+{
+  "company": "GitLab",
+  "retrieved": "2026-11-09",
+  "revision": "29ef154f7b8b4c30f6ca7d5ef8fa2fa7f121ef0e",
+  "sources": [
+    {
+      "id": "handbook",
+      "title": "Handbook-first communication",
+      "publishedUrl": "https://handbook.gitlab.com/handbook/company/culture/all-remote/handbook-first/",
+      "revisionUrl": "https://gitlab.com/gitlab-com/content-sites/handbook/-/blob/29ef154f7b8b4c30f6ca7d5ef8fa2fa7f121ef0e/content/handbook/company/culture/all-remote/handbook-first.md",
+      "rawUrl": "https://gitlab.com/gitlab-com/content-sites/handbook/-/raw/29ef154f7b8b4c30f6ca7d5ef8fa2fa7f121ef0e/content/handbook/company/culture/all-remote/handbook-first.md",
+      "repositoryPath": "content/handbook/company/culture/all-remote/handbook-first.md",
+      "file": "handbook.md",
+      "sha256": "b9e459295c13cb2fff64b69b98b56bcc10070a54278f9d0edc14cdf6ef0950fe",
+      "quotes": [
+        "GitLab is intentional about documenting in a manner that creates a single source of truth.",
+        "At GitLab, we write things down *first*, and communicate that (E.g. Document the solution first, *then* announce via Slack or email.)."
+      ]
+    },
+    {
+      "id": "communication",
+      "title": "GitLab communication",
+      "publishedUrl": "https://handbook.gitlab.com/handbook/communication/",
+      "revisionUrl": "https://gitlab.com/gitlab-com/content-sites/handbook/-/blob/29ef154f7b8b4c30f6ca7d5ef8fa2fa7f121ef0e/content/handbook/communication/_index.md",
+      "rawUrl": "https://gitlab.com/gitlab-com/content-sites/handbook/-/raw/29ef154f7b8b4c30f6ca7d5ef8fa2fa7f121ef0e/content/handbook/communication/_index.md",
+      "repositoryPath": "content/handbook/communication/_index.md",
+      "file": "communication.md",
+      "sha256": "2328f8def18142113493e237e149148371b435930e95f2f5d4b916a197f7ea99",
+      "quotes": [
+        "To accomplish this, we use asynchronous communication as a starting point and stay as open and transparent as we can by communicating through public issues, merge requests, and Slack channels.",
+        "We also place an emphasis on ensuring that conclusions of offline conversations are written down.",
+        "We communicate respectfully and professionally at all times."
+      ]
+    },
+    {
+      "id": "onboarding",
+      "title": "Remote onboarding",
+      "publishedUrl": "https://handbook.gitlab.com/handbook/company/culture/all-remote/onboarding/",
+      "revisionUrl": "https://gitlab.com/gitlab-com/content-sites/handbook/-/blob/29ef154f7b8b4c30f6ca7d5ef8fa2fa7f121ef0e/content/handbook/company/culture/all-remote/onboarding.md",
+      "rawUrl": "https://gitlab.com/gitlab-com/content-sites/handbook/-/raw/29ef154f7b8b4c30f6ca7d5ef8fa2fa7f121ef0e/content/handbook/company/culture/all-remote/onboarding.md",
+      "repositoryPath": "content/handbook/company/culture/all-remote/onboarding.md",
+      "file": "onboarding.md",
+      "sha256": "45f2c6af79af0086a27514d8cc459adbd10375678a2e4b20155548bbc056e581",
+      "quotes": [
+        "GitLab believes the onboarding process is incredibly important. We don't expect anyone to hit the ground running from day one.",
+        "We anticipate the remote onboarding process to take at least two full weeks, with the third week designated for team-specific onboarding and training. We encourage new team members to participate in their teams' work in the first two weeks, but without pressure to contribute heavily."
+      ]
+    },
+    {
+      "id": "meetings",
+      "title": "Meeting agendas",
+      "publishedUrl": "https://handbook.gitlab.com/handbook/company/culture/all-remote/meetings/",
+      "revisionUrl": "https://gitlab.com/gitlab-com/content-sites/handbook/-/blob/29ef154f7b8b4c30f6ca7d5ef8fa2fa7f121ef0e/content/handbook/company/culture/all-remote/meetings.md",
+      "rawUrl": "https://gitlab.com/gitlab-com/content-sites/handbook/-/raw/29ef154f7b8b4c30f6ca7d5ef8fa2fa7f121ef0e/content/handbook/company/culture/all-remote/meetings.md",
+      "repositoryPath": "content/handbook/company/culture/all-remote/meetings.md",
+      "file": "meetings.md",
+      "sha256": "5e37c91bfbe2553c08eb3d0c2973788230bb55c9f73e1ddac58bb5c0f1e0dac0",
+      "quotes": [
+        "Every work-related meeting should have a single live doc agenda affixed to the calendar invite at the time that the invite is added to calendars.",
+        "[Meeting DRIs](/handbook/people-group/directly-responsible-individuals/) should prep the agenda at least 72 hours before the meeting."
+      ]
+    }
+  ]
+}

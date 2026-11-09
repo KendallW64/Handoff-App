@@ -87,3 +87,6 @@ Deletion tests exercise cancellation, confirmed removal from both detail and lis
 
 
 Gemini reliability checks cover count preflight without a backend call, safe provider status mapping, network/timeout distinction, deadlines during streaming response-body reads, no retries and unchanged quota reservation. Text tests cover BOM-marked UTF-16 LE/BE CSV imports and rejection of malformed/ambiguous encodings. All provider calls in these tests are mocked.
+
+
+Public GitLab demo checks: every bundled excerpt must exactly match its pinned official snapshot; SHA-256 checks verify snapshot integrity. Initial records must have unspecified dates and no approval/generation activity. Browser checks cover old-demo storage separation, independent-demo labeling, sourced onboarding guidance, and absence of invented employee assignments. No live model calls are used.

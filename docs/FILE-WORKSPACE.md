@@ -1,6 +1,6 @@
 # Working with your own business files
 
-The file workflow is implemented alongside the BridgePoint demo. The public website now offers **Use my own files**, which opens a separate browser-local workspace with no sample company documents selected or included. This is an individual file tool, not a production multi-company identity system.
+The file workflow is implemented alongside the GitLab public-handbook demo. The public website now offers **Use my own files**, which opens a separate browser-local workspace with no sample company documents selected or included. This is an individual file tool, not a production multi-company identity system.
 
 ## Use it
 
@@ -13,7 +13,7 @@ The file workflow is implemented alongside the BridgePoint demo. The public webs
 7. Open **Ask Handoff**, choose the relevant handoff, confirm permission if needed, and ask about those selected files. Sources are the same selected file set. Without sufficient evidence, the backend returns an explicit abstention instead of guessing.
 8. Refresh and re-enter **Use my own files** to return to your saved workspace. Original files/extracted content use IndexedDB; handoff metadata, summaries and manuals use localStorage. Removing a file or changing selection invalidates the derived summary/manual and approval so stale material is not presented as current.
 
-The original BridgePoint demo remains available through **Explore the demo → Enter demo workspace**. It has its own handoff records. Files are scoped by handoff; personal workspace uploads do not appear in BridgePoint handoffs.
+The GitLab public-handbook demo is available through **Explore the demo → Enter demo workspace**. It has its own handoff records. Files are scoped by handoff; personal workspace uploads do not appear in GitLab public-handbook handoffs.
 
 ## Supported formats and honest limits
 

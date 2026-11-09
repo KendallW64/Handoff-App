@@ -11,3 +11,5 @@ playwright-report/
 .dev.vars
 .dev.vars.*
 .wrangler/
+
+artifacts/

@@ -29,10 +29,10 @@ test("complete handoff lifecycle and persistence", async ({ page }) => {
     page.getByRole("button", { name: "Generate sample manual" }),
   ).toBeDisabled();
   await page
-    .getByRole("checkbox", { name: "Include Atlas migration runbook" })
+    .getByRole("checkbox", { name: "Include Handbook-first communication" })
     .check();
   await page.getByRole("button", { name: "Read source" }).first().click();
-  await expect(page.getByRole("dialog")).toContainText("staging rehearsal");
+  await expect(page.getByRole("dialog")).toContainText("single source of truth");
   await page.getByRole("button", { name: "Done reading" }).click();
   await page.getByRole("button", { name: "Generate sample manual" }).click();
   for (const title of [
@@ -58,7 +58,7 @@ test("complete handoff lifecycle and persistence", async ({ page }) => {
   await expect(page.getByText("Completed", { exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Knowledge", exact: true }).click();
   await page
-    .getByRole("checkbox", { name: "Include Architecture decision log" })
+    .getByRole("checkbox", { name: "Include Meeting agendas" })
     .check();
   await expect(page.getByText("In progress", { exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Training manual" }).click();
@@ -70,13 +70,13 @@ test("complete handoff lifecycle and persistence", async ({ page }) => {
     .getByLabel("Knowledge from")
     .selectOption({ label: "Avery Lane → Robin Vale" });
   await page
-    .getByRole("button", { name: "What are the migration steps?" })
+    .getByRole("button", { name: "How does handbook-first communication work?" })
     .click();
-  await expect(page.locator(".answer")).toContainText("staging rehearsal");
+  await expect(page.locator(".answer")).toContainText("single source of truth");
   await expect(
     page
       .locator(".answer")
-      .getByRole("button", { name: "Atlas migration runbook" }),
+      .getByRole("button", { name: "Handbook-first communication" }),
   ).toBeVisible();
   await page.getByLabel("Your question").fill("quantum banana payroll");
   await page.getByRole("button", { name: "Send question" }).click();
@@ -141,7 +141,7 @@ test("desktop presentation, keyboard dialogs, and scoped knowledge", async ({
   await expect(dialog).not.toBeVisible();
   await expect(page.getByRole("button", { name: "New handoff" })).toBeFocused();
   await page
-    .getByRole("button", { name: "Alex Morgan Senior Cloud Consultant" })
+    .getByRole("button", { name: "Handbook-first working Public handbook topic" })
     .click();
   await page.getByRole("tab", { name: "Knowledge", exact: true }).click();
   await page.screenshot({
@@ -154,17 +154,17 @@ test("desktop presentation, keyboard dialogs, and scoped knowledge", async ({
     fullPage: true,
   });
   await page.getByRole("button", { name: "Ask Handoff", exact: true }).click();
-  await page.getByLabel("Knowledge from").selectOption("h2");
-  await page.getByRole("button", { name: "When are client updates?" }).click();
+  await page.getByLabel("Knowledge from").selectOption("gitlab-onboarding");
+  await page.getByRole("button", { name: "What should a meeting agenda include?" }).click();
   await expect(page.locator(".answer")).toContainText(
     "could not find supporting information",
   );
   await page
     .getByLabel("Your question")
-    .fill("How do I triage incident alerts?");
+    .fill("How long is remote onboarding?");
   await page.getByRole("button", { name: "Send question" }).click();
   await expect(page.locator(".answer").last()).toContainText(
-    "Acknowledge an alert",
+    "two full weeks",
   );
   await expect(page.locator(".answer").last()).not.toContainText(
     "Atlas migration",
@@ -181,20 +181,20 @@ test("empty or corrupt saved records recover without a blank workspace", async (
   for (const stored of ["{broken-json"]) {
     await page.goto("./");
     await page.evaluate(
-      (value) => localStorage.setItem("handoff-demo-v1", value),
+      (value) => localStorage.setItem("handoff-demo-gitlab-v1", value),
       stored,
     );
     await page.reload();
     await page.getByRole("button", { name: "Explore the demo" }).click();
     await page.getByRole("button", { name: "Enter demo workspace" }).click();
     await expect(
-      page.getByRole("button", { name: "Alex Morgan Senior Cloud Consultant" }),
+      page.getByRole("button", { name: "Handbook-first working Public handbook topic" }),
     ).toBeVisible();
     await page
-      .getByRole("button", { name: "Alex Morgan Senior Cloud Consultant" })
+      .getByRole("button", { name: "Handbook-first working Public handbook topic" })
       .click();
     await expect(
-      page.getByRole("heading", { name: /Alex Morgan/ }),
+      page.getByRole("heading", { name: /Handbook-first working/ }),
     ).toBeVisible();
   }
 });

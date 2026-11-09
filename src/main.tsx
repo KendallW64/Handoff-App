@@ -50,7 +50,7 @@ import {
 } from "./documents";
 import { AiControls } from "./AiControls";
 type Page = "home" | "signin" | "dashboard" | "handoff" | "ask";
-const storageKey = "handoff-demo-v1";
+const storageKey = "handoff-demo-gitlab-v1";
 function load(key = storageKey, fallback = initialHandoffs): Handoff[] {
   try {
     const v = JSON.parse(localStorage.getItem(key) || "null");
@@ -108,7 +108,7 @@ function App() {
   itemsRef.current = items;
   const workspaceRef = React.useRef(workspaceKind);
   workspaceRef.current = workspaceKind;
-  const [active, setActive] = useState("h1");
+  const [active, setActive] = useState(initialHandoffs[0].id);
   const [tab, setTab] = useState("Overview");
   const [create, setCreate] = useState(false);
   const [source, setSource] = useState<Resource | null>(null);
@@ -535,7 +535,7 @@ function App() {
                     </a>
                   </div>
                   <div className="hero-foot">
-                    <ShieldCheck size={15} /> Fictional data. No password. No
+                    <ShieldCheck size={15} /> Public GitLab handbook. No password. No
                     setup.
                   </div>
                 </div>
@@ -554,26 +554,24 @@ function App() {
                     </h3>
                     <div className="people-transfer">
                       <div>
-                        <span className="avatar large blue">AM</span>
-                        <b>Alex Morgan</b>
-                        <small>Cloud Consultant</small>
+                        <span className="avatar large blue">GL</span>
+                        <b>GitLab</b>
+                        <small>Public handbook</small>
                       </div>
                       <div className="transfer-line">
                         <ArrowRight size={22} />
                       </div>
                       <div>
-                        <span className="avatar large mint">SR</span>
-                        <b>Sam Rivera</b>
-                        <small>Incoming teammate</small>
+                        <span className="avatar large mint">You</span>
+                        <b>Demo reader</b>
+                        <small>Explore public guidance</small>
                       </div>
                     </div>
                     <div className="visual-progress">
-                      <span>Knowledge transfer</span>
-                      <b>Ready for what’s next</b>
+                      <span>Public handbook excerpts</span>
+                      <b>No personnel data</b>
                     </div>
-                    <div className="progress">
-                      <i style={{ width: "78%" }} />
-                    </div>
+
                     <div className="visual-doc">
                       <span className="doc-icon">
                         <BookOpen size={21} />
@@ -610,7 +608,7 @@ function App() {
                     CONTINUITY, WITHOUT THE COMPLEXITY
                   </div>
                   <h2>
-                    From “ask Alex” to
+                    From scattered knowledge to
                     <br />
                     “it’s all right here.”
                   </h2>
@@ -672,7 +670,7 @@ function App() {
                   <span>shared knowledge.</span>
                 </h1>
                 <p>
-                  Step into BridgePoint’s sample workspace and see knowledge
+                  Explore GitLab’s public handbook through a document-review demo and see knowledge
                   continuity in action.
                 </p>
               </div>
@@ -687,7 +685,7 @@ function App() {
                     e.preventDefault();
                     setWorkspaceKind("demo");
                     setItems(load());
-                    setActive("h1");
+                    setActive(initialHandoffs[0].id);
                     setUseGemini(false);
                     setChat([]);
                     nav("dashboard");
@@ -695,16 +693,14 @@ function App() {
                 >
                   <label htmlFor="company">Demonstration company</label>
                   <select id="company">
-                    <option>BridgePoint · IT consulting</option>
+                    <option>GitLab · Public handbook</option>
                   </select>
                   <div className="demo-note">
                     <ShieldCheck size={20} />
                     <div>
                       <b>A safe space to explore</b>
                       <p>
-                        This is demonstration authentication. All company,
-                        employee, and project information is fictional. Use
-                        sample information only.
+                        This independent demo uses verified excerpts from GitLab’s public handbook. Records are reading topics, not actual employee handoffs. Demo entry does not sign you into GitLab. No affiliation or endorsement is claimed.
                       </p>
                     </div>
                   </div>
@@ -737,10 +733,10 @@ function App() {
             </button>
             <div className="company">
               <span className="company-icon">
-                {workspaceKind === "demo" ? "B" : "F"}
+                {workspaceKind === "demo" ? "GL" : "F"}
               </span>
               <div>
-                <b>{workspaceKind === "demo" ? "BridgePoint" : "Your files"}</b>
+                <b>{workspaceKind === "demo" ? "GitLab" : "Your files"}</b>
                 <small>
                   {workspaceKind === "demo"
                     ? "Demo workspace"
@@ -776,10 +772,11 @@ function App() {
               <div className="sample-label">
                 <span className="green-dot" />{" "}
                 {workspaceKind === "demo"
-                  ? "Fictional demonstration"
+                  ? "Public-document demonstration"
                   : "Browser-local files"}
               </div>
               <p>Real continuity starts with a thoughtful handoff.</p>
+              {workspaceKind === "demo" && <small>GitLab handbook excerpts · independent demo. <a href="./LICENSE-GitLab.txt" target="_blank" rel="noreferrer">License</a></small>}
               <button
                 onClick={() => {
                   nav("home");
@@ -790,15 +787,15 @@ function App() {
               </button>
               <div className="profile">
                 <span className="avatar mint">
-                  {workspaceKind === "demo" ? "JD" : "YOU"}
+                  YOU
                 </span>
                 <div>
                   <b>
-                    {workspaceKind === "demo" ? "Jamie Davis" : "Local user"}
+                    {workspaceKind === "demo" ? "Demo reader" : "Local user"}
                   </b>
                   <small>
                     {workspaceKind === "demo"
-                      ? "Demo administrator"
+                      ? "Not a GitLab account"
                       : "This browser"}
                   </small>
                 </div>
@@ -845,7 +842,7 @@ function App() {
                     <div>
                       <div className="eyebrow">
                         {workspaceKind === "demo"
-                          ? "BRIDGEPOINT WORKSPACE"
+                          ? "GITLAB PUBLIC-HANDBOOK DEMO"
                           : "YOUR FILE WORKSPACE"}
                       </div>
                       <h1>
@@ -861,6 +858,7 @@ function App() {
                       <Plus size={17} /> New handoff
                     </button>
                   </div>
+                  {workspaceKind === "demo" && <p className="demo-note">Counts below describe this browser’s demo records and your actions only. They are not GitLab headcount, handoff volume or performance statistics.</p>}
                   <div className="stats">
                     {[
                       [
@@ -886,7 +884,7 @@ function App() {
                       return (
                         <article key={String(t)}>
                           <div>
-                            <span>{String(t)}</span>
+                            <span>{workspaceKind === "demo" ? "Demo · " : ""}{String(t)}</span>
                             <I size={18} />
                           </div>
                           <strong>{String(n)}</strong>
@@ -898,7 +896,7 @@ function App() {
                   <section className="handoff-panel">
                     <div className="panel-heading">
                       <div>
-                        <h2>Your team’s handoffs</h2>
+                        <h2>{workspaceKind === "demo" ? "Public handbook reading topics" : "Your team’s handoffs"}</h2>
                         <p>Every transition, with a clear next step.</p>
                       </div>
                       <span className="subtle">{items.length} total</span>
@@ -924,7 +922,7 @@ function App() {
                         <Search size={16} />
                         <input
                           aria-label="Search handoffs"
-                          placeholder="Search people or roles"
+                          placeholder={workspaceKind === "demo" ? "Search topics" : "Search people or roles"}
                           value={search}
                           onChange={(e) => setSearch(e.target.value)}
                         />
@@ -934,9 +932,9 @@ function App() {
                       <table>
                         <thead>
                           <tr>
-                            <th>EMPLOYEE / ROLE</th>
-                            <th>RECEIVING TEAMMATE</th>
-                            <th>TRANSITION DATE</th>
+                            <th>{workspaceKind === "demo" ? "TOPIC / SOURCE" : "EMPLOYEE / ROLE"}</th>
+                            <th>{workspaceKind === "demo" ? "READER LABEL" : "RECEIVING TEAMMATE"}</th>
+                            <th>{workspaceKind === "demo" ? "DATE (IF DOCUMENTED)" : "TRANSITION DATE"}</th>
                             <th>STATUS</th>
                             <th />
                           </tr>
@@ -1043,7 +1041,7 @@ function App() {
                       </div>
                     </section>
                     <section className="activity">
-                      <h2>Workspace activity</h2>
+                      <h2>{workspaceKind === "demo" ? "Your demo activity" : "Workspace activity"}</h2>
                       <div>
                         <span className="activity-dot" />
                         <p>
@@ -1061,14 +1059,14 @@ function App() {
                             {items.filter((i) => i.generated).length} manuals
                             generated
                           </b>
-                          <small>Structured from selected sample sources</small>
+                          <small>Structured from selected sources</small>
                         </p>
                       </div>
                       <div>
                         <span className="activity-dot gray" />
                         <p>
-                          <b>{items.length} employee handoffs</b>
-                          <small>Fictional BridgePoint records</small>
+                          <b>{items.length} {workspaceKind === "demo" ? "demo records" : "handoffs"}</b>
+                          <small>{workspaceKind === "demo" ? "Demo topic records, not GitLab personnel data" : "Records in this browser"}</small>
                         </p>
                       </div>
                     </section>
@@ -1164,7 +1162,7 @@ function App() {
                         ))}
                         <div className="demo-note">
                           {workspaceKind === "demo"
-                            ? "BridgePoint records are fictional. Use your file workspace for your own authorized documents."
+                            ? "GitLab public-document review. No employee assignment or transition date is verified. Manual approvals apply only inside this demo."
                             : "Use only documents you are authorized to process. Google processes selected contents when you request AI; review your API data terms."}
                         </div>
                       </section>
@@ -1185,7 +1183,7 @@ function App() {
                       </div>
                       <div className="demo-note">
                         {workspaceKind === "demo"
-                          ? "Sample library · BridgePoint resources are fictional. You may also import your own authorized files below."
+                          ? "GitLab public handbook excerpts. These are source quotations, not access to internal GitLab files. You may also import your own authorized files below."
                           : "Your file workspace · No sample company documents are included. File contents stay in this browser until you explicitly send selected content to Gemini."}
                       </div>
                       {filesError && (
@@ -1386,7 +1384,7 @@ function App() {
                             <Sparkles size={18} />{" "}
                             {h.aiManual
                               ? `Generated by Gemini (${h.aiManual.model}) from your selected sources. AI may be wrong; verify every section and citation before approval.`
-                              : "Simulated AI: this draft assembles your handoff details and selected sample sources using local templates. Review all content before approving."}
+                              : "Local reading guide: selected source excerpts are assembled without an AI request. This is not a GitLab-approved manual. Review before approving in this demo."}
                           </div>
                           {(h.aiManual?.sections || manual(h, library)).map(
                             (s) => (
@@ -1409,7 +1407,7 @@ function App() {
                               <h3>
                                 {h.approved
                                   ? workspaceKind === "demo"
-                                    ? "Approved by Jamie Davis · Demo administrator"
+                                    ? "Approved in this browser · Demo only"
                                     : "Approved in this browser · Not an authenticated company review"
                                   : "Ready for a human review"}
                               </h3>
@@ -1464,7 +1462,7 @@ function App() {
                       <Sparkles size={18} />{" "}
                       {useGemini
                         ? "Gemini mode · Answers use only your selected sources and handoff details. Files are local to this browser; shared company permissions are not implemented."
-                        : "Simulated AI · Answers retrieve matching selected sample documents, with sources. No external AI service is used."}
+                        : "Local retrieval · Answers quote matching selected documents with references. No external AI service is used."}
                     </div>
                     {aiControls}
                     {!chat.length && (
@@ -1476,9 +1474,9 @@ function App() {
                         <p>Start with a question about the selected handoff.</p>
                         <div className="suggestions">
                           {[
-                            "What are the migration steps?",
-                            "When are client updates?",
-                            "Why was phased migration chosen?",
+                            "How does handbook-first communication work?",
+                            "How long does remote onboarding take?",
+                            "What should a meeting agenda include?",
                           ].map((q) => (
                             <button
                               key={q}
@@ -1548,7 +1546,7 @@ function App() {
                 <span>Knowledge stays. Teams move forward.</span>
                 <span>
                   {workspaceKind === "demo"
-                    ? "Handoff demo · Fictional records"
+                    ? "GitLab public handbook · Independent demo"
                     : "Handoff · Browser-local file workspace"}
                 </span>
               </div>
@@ -1600,7 +1598,7 @@ function App() {
             <div className="demo-note">
               {source.origin === "upload"
                 ? "This content was imported from your file and saved in this browser."
-                : "Fictional document supplied with this prototype. No external system is connected."}
+                : "Verified quotation from GitLab’s public handbook snapshot. No internal company system is connected."}
             </div>
             <button className="btn" onClick={() => setSource(null)}>
               Done reading <Check size={16} />
@@ -1627,7 +1625,7 @@ function App() {
             <h2 id="create-title">Create a handoff</h2>
             <p>
               {workspaceKind === "demo"
-                ? "Use fictional details only."
+                ? "Enter only details you are authorized to use. User-created records are not verified GitLab facts."
                 : "Use only information you are authorized to process."}{" "}
               You can organize knowledge next.
             </p>
@@ -1650,7 +1648,7 @@ function App() {
                     "responsibilities",
                   ].some((k) => !get(k))
                 ) {
-                  setNotice("Please fill every field with sample details.");
+                  setNotice("Please fill every required field.");
                   return;
                 }
                 const item: Handoff = {

@@ -26,5 +26,5 @@ test('browser distinguishes connection failure from deadline without retrying',a
  let calls=0;
  await page.route('**/api/generate',async route=>{calls++;await route.abort('failed');});
  await page.goto('./');await page.getByRole('button',{name:'Explore the demo'}).click();await page.getByRole('button',{name:'Enter demo workspace'}).click();await page.getByRole('button',{name:'Ask Handoff',exact:true}).click();await page.getByRole('checkbox',{name:'Use Gemini AI'}).check();
- await page.getByRole('button',{name:'What are the migration steps?'}).click();await expect(page.getByRole('alert')).toContainText('connection failed');expect(calls).toBe(1);await expect(page.locator('.answer')).toHaveCount(0);
+ await page.getByRole('button',{name:'How does handbook-first communication work?'}).click();await expect(page.getByRole('alert')).toContainText('connection failed');expect(calls).toBe(1);await expect(page.locator('.answer')).toHaveCount(0);
 });

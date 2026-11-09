@@ -12,7 +12,7 @@ export function selectedDocuments(body: Record<string, any>): Resource[] {
     throw Error("Select no more than 8 uploaded files, or 20 for organization.");
   if (uploads.length && body.contentConsent !== true)
     throw Error("Confirm permission to send selected file contents to Google.");
-  if (!uploads.length && body.fictionalDataOnly !== true)
+  if (!uploads.length && body.publicDemoDataOnly !== true)
     throw Error("Choose valid demo sources or attach authorized files.");
   let textSize = 0,
     binarySize = 0;

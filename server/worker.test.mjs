@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createWorker } from "./worker.ts";
 const origin = "https://kendallw64.github.io";
 const details = {
-  name: "Alex Morgan",
+  name: "Handbook-first working",
   role: "Consultant",
   department: "Cloud",
   recipient: "Sam Rivera",
@@ -13,8 +13,8 @@ const details = {
 };
 const body = {
   mode: "answer",
-  fictionalDataOnly: true,
-  sourceIds: ["migration"],
+  publicDemoDataOnly: true,
+  sourceIds: ["handbook"],
   handoff: details,
   question: "How is migration done?",
 };
@@ -51,7 +51,7 @@ const request = (data = body, headers = {}) =>
 function provider(
   output = {
     text: "Rehearse in staging.",
-    sourceIds: ["migration"],
+    sourceIds: ["handbook"],
     insufficientEvidence: false,
   },
 ) {
@@ -76,7 +76,7 @@ test("configured answer calls Gemini server-side and only sends selected source 
     const content = JSON.parse(payload.contents[0].parts[0].text);
     assert.deepEqual(
       content.documents.map((d) => d.id),
-      ["migration"],
+      ["handbook"],
     );
     assert.ok(!options.body.includes("Client relationship notes"));
     assert.ok(!options.body.includes(env.GEMINI_API_KEY));
@@ -86,7 +86,7 @@ test("configured answer calls Gemini server-side and only sends selected source 
   assert.equal(result.status, 200);
   const json = await result.json();
   assert.equal(json.provider, "gemini");
-  assert.deepEqual(json.sourceIds, ["migration"]);
+  assert.deepEqual(json.sourceIds, ["handbook"]);
   assert.equal(calls, 1);
   assert.ok(!JSON.stringify(json).includes(env.GEMINI_API_KEY));
 });
@@ -137,7 +137,7 @@ test("origin restriction, preflight, invalid documents and malformed bodies", as
     400,
   );
   assert.equal(
-    (await worker.fetch(request({ ...body, fictionalDataOnly: false }), env))
+    (await worker.fetch(request({ ...body, publicDemoDataOnly: false }), env))
       .status,
     400,
   );
@@ -192,7 +192,7 @@ test("manual requires all six unique sourced sections", async () => {
     (kind) => ({
       kind,
       body: "Sample content supported by selected evidence.",
-      sourceIds: ["migration"],
+      sourceIds: ["handbook"],
     }),
   );
   const response = await createWorker(provider({ sections })).fetch(
@@ -250,7 +250,7 @@ test("uploaded-file summaries forward only explicitly selected content and requi
     mode: "summary",
     sourceIds: [upload.id],
     uploadedDocuments: [upload],
-    fictionalDataOnly: false,
+    publicDemoDataOnly: false,
     contentConsent: true,
   };
   let calls = 0;
@@ -296,7 +296,7 @@ test("uploaded-file summaries forward only explicitly selected content and requi
   assert.equal(
     (
       await worker.fetch(
-        request({ ...input, sourceIds: ["migration"] }),
+        request({ ...input, sourceIds: ["handbook"] }),
         environment(),
       )
     ).status,
@@ -329,7 +329,7 @@ test("native image/PDF content uses Gemini inline parts and unselected/forged fi
     ...body,
     sourceIds: [upload.id],
     uploadedDocuments: [upload],
-    fictionalDataOnly: false,
+    publicDemoDataOnly: false,
     contentConsent: true,
   };
   const worker = createWorker(async (_url, options) => {
@@ -412,7 +412,7 @@ test('organization supports 20 authorized uploads, preview limits and rejects un
  assert.equal((await bad.fetch(request(input),environment())).status,502);
 });
 test('summary does not require an unrelated question',async()=>{
- const worker=createWorker(provider({text:'Migration runbook summary.',sourceIds:['migration'],insufficientEvidence:false}));
+ const worker=createWorker(provider({text:'Migration runbook summary.',sourceIds:['handbook'],insufficientEvidence:false}));
  assert.equal((await worker.fetch(request({...body,mode:'summary',question:undefined}),environment())).status,200);
 });
 
@@ -430,7 +430,7 @@ test('provider deadline covers response-body reading and permits responses beyon
  // Small injected deadlines test actual abort behavior without waiting a full minute.
  const delayed=(delay)=>async(_url,options)=>{
   const stream=new ReadableStream({start(controller){
-   const timer=setTimeout(()=>{controller.enqueue(new TextEncoder().encode(JSON.stringify({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({text:'Supported answer.',sourceIds:['migration'],insufficientEvidence:false})}]}}]})));controller.close();},delay);
+   const timer=setTimeout(()=>{controller.enqueue(new TextEncoder().encode(JSON.stringify({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({text:'Supported answer.',sourceIds:['handbook'],insufficientEvidence:false})}]}}]})));controller.close();},delay);
    options.signal.addEventListener('abort',()=>{clearTimeout(timer);controller.error(options.signal.reason)},{once:true});
   }});return new Response(stream,{headers:{'Content-Type':'application/json'}});
  };

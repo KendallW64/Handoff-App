@@ -23,9 +23,9 @@ test('delete confirms, removes only the target handoff and files, and persists e
 });
 test('delete from demo table keeps other handoffs and persists after reload',async({page})=>{
  await page.goto('./');await page.getByRole('button',{name:'Explore the demo'}).click();await page.getByRole('button',{name:'Enter demo workspace'}).click();
- page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:'Delete Alex Morgan handoff'}).click();
- await expect(page.getByRole('button',{name:'Open Alex Morgan handoff'})).toHaveCount(0);
- expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('handoff-demo-v1')!).length)).toBeGreaterThan(0);
+ page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:'Delete Handbook-first working handoff'}).click();
+ await expect(page.getByRole('button',{name:'Open Handbook-first working handoff'})).toHaveCount(0);
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('handoff-demo-gitlab-v1')!).length)).toBeGreaterThan(0);
  await page.reload();await page.getByRole('button',{name:'Explore the demo'}).click();await page.getByRole('button',{name:'Enter demo workspace'}).click();
- await expect(page.getByRole('button',{name:'Open Alex Morgan handoff'})).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Open Handbook-first working handoff'})).toHaveCount(0);
 });
